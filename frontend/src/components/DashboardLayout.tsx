@@ -43,37 +43,30 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { theme, setTheme } = useTheme();
 
   return (
-    <div className="flex w-full h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-900 overflow-hidden">
+    <div className="flex h-screen w-screen overflow-hidden bg-gradient-to-br from-emerald-50 via-blue-50/20 to-emerald-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-900/5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-800/50 shadow-xl shadow-slate-900/5 transform transition-transform duration-300 ease-in-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-slate-200/50 dark:border-slate-800/50">
           <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30 group-hover:scale-110 transition-transform duration-300">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform">
               <UserCheck className="h-5 w-5 text-white" />
             </div>
             <span className="font-bold text-xl bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent dark:from-emerald-400 dark:to-teal-400">
               HomeCare
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
+          <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
             <X className="h-6 w-6" />
           </Button>
         </div>
 
-        {/* Navigation */}
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeNav === item.label;
@@ -87,58 +80,49 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   setSidebarOpen(false);
                 }}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden",
+                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 group",
                   isActive
-                    ? "bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/50 dark:to-teal-950/50 text-emerald-700 dark:text-emerald-400 shadow-md"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white hover:translate-x-2"
+                    ? "bg-gradient-to-r from-emerald-100/80 to-teal-100/80 dark:from-emerald-950/50 dark:to-teal-950/50 text-emerald-700 dark:text-emerald-400 shadow-sm"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-emerald-600 dark:hover:text-emerald-400"
                 )}
               >
-                <Icon className={cn("h-5 w-5 transition-colors", isActive ? "text-emerald-600" : "group-hover:text-emerald-500")} />
-                <span className="whitespace-nowrap">{item.label}</span>
+                <Icon className="h-5 w-5 shrink-0" />
+                <span>{item.label}</span>
               </a>
             );
           })}
         </nav>
       </aside>
 
-      {/* Mobile overlay */}
+      {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm lg:hidden transition-opacity duration-300"
+          className="fixed inset-0 bg-black/60 z-40 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex flex-col flex-1 h-full overflow-hidden">
         
         {/* Header */}
-        <header className="h-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between px-6 shadow-sm">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setSidebarOpen(true)}
-            >
+        <header className="h-16 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between px-6">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
               <Menu className="h-6 w-6" />
             </Button>
-            <div className="animate-slide-in-left">
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">Dashboard</h1>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 Welcome back, <span className="font-semibold text-emerald-600 dark:text-emerald-400">Admin</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
-                >
+                <Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800">
                   {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
                 </Button>
               </DropdownMenuTrigger>
@@ -151,19 +135,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition"
-            >
+            <Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800">
               <Settings className="h-5 w-5" />
             </Button>
           </div>
         </header>
 
-        {/* Main area */}
-        <main className="flex-1 overflow-y-auto p-6 space-y-6 animate-fade-in">
-          {children}
+        {/* Scrollable Main Section */}
+        <main className="flex-1 overflow-y-auto px-8 py-6 lg:px-10 bg-transparent">
+          <div className="w-full h-full rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-sm p-6 shadow-inner shadow-slate-900/10 transition-all duration-300">
+            {children}
+          </div>
         </main>
       </div>
     </div>
