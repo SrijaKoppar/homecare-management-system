@@ -1,15 +1,25 @@
+import { Routes, Route } from 'react-router-dom';
 import { DashboardLayout } from './components/DashboardLayout';
 import { StatCard } from './components/StatCard';
 import { UpcomingSchedules } from './components/UpcomingSchedules';
 import { PendingLeaveRequests } from './components/PendingLeaveRequests';
+import { PatientsLanding } from './components/PatientsLanding';
+import { NewPatient } from './components/NewPatient';
+import { ViewModifyPatients } from './components/ViewModifyPatients';
+import { CaregiverLanding } from './components/CaregiverLanding';
+import { NewCaregiver } from './components/NewCaregiver';
+import { ViewModifyCaregivers } from './components/ViewModifyCaregivers';
 import { Users, UserCheck, Calendar, FileText } from 'lucide-react';
 import './App.css';
 
-function App() {
+function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="p-4 lg:p-6 space-y-6 animate-fade-in">
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4" style={{ animationDelay: '0.1s' }}>
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"
+          style={{ animationDelay: '0.1s' }}
+        >
           <StatCard
             title="Active Patients"
             value={124}
@@ -48,6 +58,25 @@ function App() {
         </div>
       </div>
     </DashboardLayout>
+  );
+}
+
+function App() {
+  return (
+    <Routes>
+      {/* Dashboard */}
+      <Route path="/" element={<DashboardPage />} />
+
+      {/* Standalone Patients Pages */}
+      <Route path="/patients" element={<PatientsLanding />} />
+      <Route path="/patients/new" element={<NewPatient />} />
+      <Route path="/patients/view" element={<ViewModifyPatients />} />
+
+      <Route path="/caregivers" element={<CaregiverLanding />} />
+      <Route path="/caregivers/new" element={<NewCaregiver />} />
+      <Route path="/caregivers/view" element={<ViewModifyCaregivers />} />
+
+    </Routes>
   );
 }
 

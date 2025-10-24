@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -29,8 +30,8 @@ interface DashboardLayoutProps {
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', href: '#dashboard' },
-  { icon: Users, label: 'Patients', href: '#patients' },
-  { icon: UserCheck, label: 'Caregivers', href: '#caregivers' },
+  { icon: Users, label: 'Patients', href: '/patients' },
+  { icon: UserCheck, label: 'Caregivers', href: '/caregivers' },
   { icon: Calendar, label: 'Scheduling', href: '#scheduling' },
   { icon: DollarSign, label: 'Compensation', href: '#compensation' },
   { icon: FileText, label: 'Leave Requests', href: '#leave' },
@@ -67,31 +68,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         <nav className="p-4 space-y-1">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeNav === item.label;
-            return (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  setActiveNav(item.label);
-                  setSidebarOpen(false);
-                }}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 group",
-                  isActive
-                    ? "bg-gradient-to-r from-emerald-100/80 to-teal-100/80 dark:from-emerald-950/50 dark:to-teal-950/50 text-emerald-700 dark:text-emerald-400 shadow-sm"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-emerald-600 dark:hover:text-emerald-400"
-                )}
-              >
-                <Icon className="h-5 w-5 shrink-0" />
-                <span>{item.label}</span>
-              </a>
-            );
-          })}
-        </nav>
+  {navItems.map((item) => {
+    const Icon = item.icon;
+    const isActive = useLocation().pathname === item.href; // highlights active page
+    return (
+      <Link
+        key={item.label}
+        to={item.href}
+        onClick={() => setSidebarOpen(false)}
+        className={cn(
+          "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 group",
+          isActive
+            ? "bg-gradient-to-r from-emerald-100/80 to-teal-100/80 dark:from-emerald-950/50 dark:to-teal-950/50 text-emerald-700 dark:text-emerald-400 shadow-sm"
+            : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-emerald-600 dark:hover:text-emerald-400"
+        )}
+      >
+        <Icon className="h-5 w-5 shrink-0" />
+        <span>{item.label}</span>
+      </Link>
+    );
+  })}
+</nav>
       </aside>
 
       {/* Mobile Overlay */}
@@ -151,3 +148,4 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     </div>
   );
 }
+
