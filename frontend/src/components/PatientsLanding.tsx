@@ -23,24 +23,24 @@ function ActionCard({
   onClick: () => void;
 }) {
   return (
-    <Card className="p-8 flex flex-col items-center text-center justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
+    <Card className="p-8 flex flex-col items-center text-center gap-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all duration-300">
       <div className="flex flex-col items-center gap-4">
-        <div className="p-3 bg-emerald-500 rounded-xl">
+        <div className="p-3 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl">
           {icon}
         </div>
 
-        <CardTitle className="text-xl font-semibold text-slate-900 dark:text-white">
+        <CardTitle className="text-lg font-bold text-slate-900">
           {title}
         </CardTitle>
 
-        <CardContent className="text-slate-600 dark:text-slate-400 text-sm">
+        <p className="text-slate-600 text-sm leading-relaxed">
           {description}
-        </CardContent>
+        </p>
       </div>
 
       <Button
         onClick={onClick}
-        className="mt-6 bg-emerald-600 hover:bg-emerald-700 text-white"
+        className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-medium"
       >
         {ctaLabel}
       </Button>
@@ -56,10 +56,10 @@ export function PatientsLanding() {
 
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+        <h1 className="text-3xl font-bold text-slate-900 text-balance-heading">
           Patient Management
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
+        <p className="text-slate-500 mt-1">
           Manage patient registrations, care plans, schedules, and assignments.
         </p>
       </div>

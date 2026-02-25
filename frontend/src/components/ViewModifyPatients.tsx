@@ -54,19 +54,19 @@ export function ViewModifyPatients() {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-slate-900 text-balance-heading">
             Patients
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-slate-500 mt-1">
             Manage care recipients within your organization.
           </p>
         </div>
 
         <Button
           onClick={() => navigate('/patients/new')}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-2"
+          className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white flex items-center justify-center gap-2 font-medium"
         >
           <Plus size={16} />
           Add Patient
@@ -74,58 +74,61 @@ export function ViewModifyPatients() {
       </div>
 
       {/* Search */}
-      <div className="flex items-center gap-2 border border-slate-300 dark:border-slate-700 rounded-lg px-3 py-2 bg-white dark:bg-slate-900 max-w-md">
-        <Search size={16} className="text-slate-500" />
+      <div className="flex items-center gap-2 border border-slate-200 rounded-lg px-4 py-2.5 bg-slate-50 max-w-md hover:border-slate-300 transition-smooth focus-within:border-orange-500 focus-within:bg-white">
+        <Search size={16} className="text-slate-400" />
         <input
           type="text"
           placeholder="Search by name or email"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full bg-transparent outline-none text-sm"
+          className="w-full bg-transparent outline-none text-sm text-slate-900 placeholder-slate-400"
         />
       </div>
 
       {/* List */}
-      <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+      <div className="space-y-3">
 
         {loading ? (
-          <div className="p-6 text-center text-slate-500">Loading patients...</div>
+          <div className="p-12 text-center text-slate-500">
+            <div className="animate-spin w-8 h-8 border-2 border-orange-200 border-t-orange-500 rounded-full mx-auto mb-4"></div>
+            Loading patients...
+          </div>
         ) : patients.length === 0 ? (
-          <div className="p-6 text-center text-slate-500">No patients found.</div>
+          <div className="p-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200">No patients found.</div>
         ) : (
           patients.map((p) => (
             <div
               key={p.id}
-              className="flex justify-between items-center px-6 py-4 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition"
+              className="bg-white border border-slate-200 rounded-xl p-5 hover:shadow-md hover:border-slate-300 transition-smooth flex justify-between items-center gap-4 group"
             >
-              <div>
-                <div className="font-semibold text-slate-900 dark:text-white">
+              <div className="flex-1">
+                <div className="font-semibold text-slate-900">
                   {p.name}
                 </div>
-                <div className="text-sm text-slate-500">
+                <div className="text-sm text-slate-600 mt-1">
                   {p.email} • {p.phone}
                 </div>
-                <div className="text-xs text-slate-400 mt-1">
-                  Caregiver: {p.assignedCaregiver || 'None'}
+                <div className="text-xs text-slate-500 mt-2 bg-slate-50 w-fit px-2 py-1 rounded">
+                  Assigned: {p.assignedCaregiver || 'Unassigned'}
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => navigate(`/patients/${p.id}`)}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 border-slate-200 hover:bg-slate-50"
                 >
                   <Pencil size={14} />
-                  View
+                  Edit
                 </Button>
 
                 <Button
                   size="sm"
-                  variant="destructive"
+                  variant="outline"
                   onClick={() => handleDelete(p.id)}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-1 border-red-200 text-red-600 hover:bg-red-50"
                 >
                   <Trash2 size={14} />
                   Delete

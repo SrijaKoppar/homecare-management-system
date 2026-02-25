@@ -234,8 +234,8 @@ export function NewPatient() {
                 onClick={() => toggleLanguage(lang)}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition ${
                   formData.languages.includes(lang)
-                    ? 'bg-emerald-600 text-white shadow'
-                    : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200'
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow'
+                    : 'bg-slate-100 hover:bg-slate-200'
                 }`}
               >
                 {lang}
@@ -259,7 +259,7 @@ export function NewPatient() {
                   value={option}
                   checked={formData.supportRequested === option}
                   onChange={handleChange}
-                  className="accent-emerald-600"
+                  className="accent-orange-600"
                 />
                 <span className="font-medium">{option}</span>
               </label>
@@ -277,7 +277,7 @@ export function NewPatient() {
             {Object.keys(formData.requirements).map((key) => (
               <div
                 key={key}
-                className="flex justify-between items-center border border-slate-200 dark:border-slate-700 rounded-lg p-4"
+                className="flex justify-between items-center border border-slate-200 rounded-lg p-4 hover:bg-slate-50 transition-smooth"
               >
                 <span className="text-sm font-medium capitalize">
                   {key.replace(/([A-Z])/g, ' $1')}
@@ -295,7 +295,7 @@ export function NewPatient() {
                         ] === true
                       }
                       onChange={handleChange}
-                      className="accent-emerald-600"
+                      className="accent-orange-600"
                     />
                     Yes
                   </label>
@@ -322,11 +322,17 @@ export function NewPatient() {
         </section>
   
         {/* Submit */}
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+          <Button
+            variant="outline"
+            className="px-8 py-3 rounded-lg"
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg shadow"
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 disabled:from-slate-400 disabled:to-slate-400 text-white px-8 py-3 rounded-lg"
           >
             {loading ? 'Saving...' : 'Save Patient'}
           </Button>

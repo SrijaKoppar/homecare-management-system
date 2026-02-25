@@ -97,23 +97,23 @@ export function PendingLeaveRequests() {
     <div className="space-y-6">
 
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">
             Leave Requests
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-slate-500 mt-1">
             Review and manage caregiver leave requests.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
           <select
             value={filterStatus}
             onChange={(e) =>
               setFilterStatus(e.target.value as any)
             }
-            className="px-4 py-2 border border-slate-200 rounded-lg bg-white text-sm focus:outline-none focus:border-orange-500"
+            className="px-4 py-2.5 border border-slate-200 rounded-lg bg-white text-sm focus:outline-none focus:border-orange-500 focus:bg-slate-50 transition-smooth"
           >
             <option value="all">All Requests</option>
             <option value="pending">Pending</option>
@@ -121,7 +121,7 @@ export function PendingLeaveRequests() {
             <option value="denied">Denied</option>
           </select>
 
-          <Button onClick={loadLeaves} variant="outline">
+          <Button onClick={loadLeaves} variant="outline" className="border-slate-200 hover:bg-slate-50">
             Refresh
           </Button>
         </div>
@@ -185,7 +185,7 @@ export function PendingLeaveRequests() {
                       actioningId === l.id ||
                       l.status === 'approved'
                     }
-                    className="bg-emerald-600 hover:bg-emerald-700"
+                    className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white"
                     onClick={() =>
                       performAction(l.id, 'approve')
                     }
