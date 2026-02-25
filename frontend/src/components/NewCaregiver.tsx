@@ -102,64 +102,64 @@ export function NewCaregiver() {
   };
 
   return (
-    <div className="space-y-8">
-
-      {/* Header */}
+    <div className="max-w-6xl mx-auto space-y-10">
+  
+      {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          New Caregiver
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
+          Caregiver Registration
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Enter caregiver personal and professional details.
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
+          Enter personal, professional, and banking details of the caregiver.
         </p>
       </div>
-
-      {/* Form */}
-      <div className="space-y-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-
+  
+      {/* Main Card */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 space-y-12">
+  
         {/* Personal Information */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Personal Information
           </h2>
-
-          <div className="grid md:grid-cols-3 gap-4">
+  
+          <div className="grid md:grid-cols-3 gap-6">
             <input
               name="firstName"
               placeholder="First Name"
               value={formData.firstName}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
             <input
               name="middleName"
               placeholder="Middle Name"
               value={formData.middleName}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
             <input
               name="lastName"
               placeholder="Last Name"
               value={formData.lastName}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
           </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
+  
+          <div className="grid md:grid-cols-2 gap-6">
             <input
               type="date"
               name="dob"
               value={formData.dob}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
             <select
               name="gender"
               value={formData.gender}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             >
               <option value="">Select Gender</option>
               <option>Male</option>
@@ -168,128 +168,145 @@ export function NewCaregiver() {
             </select>
           </div>
         </section>
-
+  
         {/* Contact Information */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Contact Information
           </h2>
-
-          <div className="grid md:grid-cols-2 gap-4">
+  
+          <div className="grid md:grid-cols-2 gap-6">
             <input
               name="phone"
-              placeholder="Phone"
+              placeholder="Phone Number"
               value={formData.phone}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
             <input
               name="email"
-              placeholder="Email"
+              placeholder="Email Address"
               value={formData.email}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
           </div>
-
-          <input
+  
+          <textarea
             name="address"
             placeholder="Residential Address"
             value={formData.address}
             onChange={handleChange}
-            className="input input-bordered p-2 w-full"
+            rows={3}
+            className="input input-bordered p-3 rounded-lg w-full"
           />
         </section>
-
+  
         {/* Languages */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Known Languages
           </h2>
-
-          <select
-            multiple
-            name="languages"
-            value={formData.languages}
-            onChange={handleChange}
-            className="input input-bordered p-2 w-full h-32"
-          >
+  
+          <div className="flex flex-wrap gap-3">
             {languageOptions.map((lang) => (
-              <option key={lang} value={lang}>
+              <button
+                key={lang}
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    languages: prev.languages.includes(lang)
+                      ? prev.languages.filter((l) => l !== lang)
+                      : [...prev.languages, lang],
+                  }))
+                }
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
+                  formData.languages.includes(lang)
+                    ? 'bg-emerald-600 text-white shadow'
+                    : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200'
+                }`}
+              >
                 {lang}
-              </option>
+              </button>
             ))}
-          </select>
+          </div>
         </section>
-
-        {/* Documents */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
-            Documents & Banking
+  
+        {/* Documents & Banking */}
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
+            Documents & Banking Details
           </h2>
-
+  
           <input
             name="addressProof"
-            placeholder="Address Proof"
+            placeholder="Address Proof Document"
             value={formData.addressProof}
             onChange={handleChange}
-            className="input input-bordered p-2 w-full"
+            className="input input-bordered p-3 rounded-lg w-full"
           />
-
-          <div className="grid md:grid-cols-3 gap-4">
+  
+          <div className="grid md:grid-cols-3 gap-6">
             <input
               name="bankName"
               placeholder="Bank Name"
               value={formData.bankName}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
             <input
               name="accountNumber"
               placeholder="Account Number"
               value={formData.accountNumber}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
             <input
               name="ifscCode"
               placeholder="IFSC Code"
               value={formData.ifscCode}
               onChange={handleChange}
-              className="input input-bordered p-2"
+              className="input input-bordered p-3 rounded-lg"
             />
           </div>
-
+        </section>
+  
+        {/* Professional Details */}
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
+            Professional Details
+          </h2>
+  
           <textarea
             name="priorExperience"
-            placeholder="Prior Experience"
+            placeholder="Describe Prior Experience"
             value={formData.priorExperience}
             onChange={handleChange}
-            className="input input-bordered p-2 w-full"
+            rows={3}
+            className="input input-bordered p-3 rounded-lg w-full"
           />
-
+  
           <input
             name="qualification"
             placeholder="Qualification"
             value={formData.qualification}
             onChange={handleChange}
-            className="input input-bordered p-2 w-full"
+            className="input input-bordered p-3 rounded-lg w-full"
           />
         </section>
-
+  
         {/* Submit */}
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-6 border-t">
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg shadow-md"
           >
-            {loading ? 'Saving...' : 'Save Caregiver'}
+            {loading ? 'Saving...' : 'Register Caregiver'}
           </Button>
         </div>
       </div>
     </div>
   );
 }
-
-export default NewCaregiver;

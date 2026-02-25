@@ -1,8 +1,14 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { UserPlus, ClipboardList } from 'lucide-react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import {
+  UserPlus,
+  ClipboardList,
+  Calendar,
+  Clock,
+  MessageSquare,
+} from "lucide-react";
 
 function ActionCard({
   title,
@@ -47,34 +53,64 @@ export function CaregiverLanding() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
 
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Caregivers
+          Caregiver Management
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm">
-          Register new caregivers or manage existing caregiver records.
+          Manage caregiver registrations, schedules, assignments, and communication.
         </p>
       </div>
 
-      {/* Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Action Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
+
+        {/* Register */}
         <ActionCard
           title="New Caregiver Registration"
-          description="Register a new caregiver with personal details, qualifications, and availability."
+          description="Register a new caregiver with qualifications, availability, and contact details."
           icon={<UserPlus className="h-6 w-6 text-white" />}
           ctaLabel="Register Caregiver"
-          onClick={() => navigate('/caregivers/new')}
+          onClick={() => navigate("/caregivers/new")}
         />
 
+        {/* View */}
         <ActionCard
           title="View & Manage Caregivers"
           description="View, edit, and manage caregiver profiles and assignments."
           icon={<ClipboardList className="h-6 w-6 text-white" />}
           ctaLabel="View Caregivers"
-          onClick={() => navigate('/caregivers/view')}
+          onClick={() => navigate("/caregivers/view")}
+        />
+
+        {/* Schedule */}
+        <ActionCard
+          title="Caregiver Schedules"
+          description="View caregiver visits, shifts, and daily schedules."
+          icon={<Calendar className="h-6 w-6 text-white" />}
+          ctaLabel="View Schedule"
+          onClick={() => navigate("/schedule")}
+        />
+
+        {/* 24/7 Assignment */}
+        <ActionCard
+          title="24/7 Assignments"
+          description="Assign or manage continuous caregiver assignments."
+          icon={<Clock className="h-6 w-6 text-white" />}
+          ctaLabel="Assign 24/7"
+          onClick={() => navigate("/schedule/assign24x7")}
+        />
+
+        {/* Messages */}
+        <ActionCard
+          title="Caregiver Messages"
+          description="Communicate with caregivers and care circles."
+          icon={<MessageSquare className="h-6 w-6 text-white" />}
+          ctaLabel="Open Messages"
+          onClick={() => navigate("/messages")}
         />
       </div>
     </div>

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from './ui/button';
+import { Badge } from './ui/badge';
 import { API_BASE } from '../config/api';
+import { Calendar, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 type LeaveRequest = {
   id: number;
@@ -65,16 +67,42 @@ export function PendingLeaveRequests() {
     }
   };
 
+  const getStatusBadge = (status?: string | null) => {
+    switch (status) {
+      case 'approved':
+        return (
+          <Badge className="bg-emerald-100 text-emerald-700 flex items-center gap-1">
+            <CheckCircle className="w-3 h-3" />
+            Approved
+          </Badge>
+        );
+      case 'denied':
+        return (
+          <Badge className="bg-red-100 text-red-700 flex items-center gap-1">
+            <XCircle className="w-3 h-3" />
+            Denied
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-amber-100 text-amber-700 flex items-center gap-1">
+            <Clock className="w-3 h-3" />
+            Pending
+          </Badge>
+        );
+    }
+  };
+
   return (
     <div className="space-y-6">
 
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-slate-900">
             Leave Requests
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500">
             Review and manage caregiver leave requests.
           </p>
         </div>
@@ -85,79 +113,79 @@ export function PendingLeaveRequests() {
             onChange={(e) =>
               setFilterStatus(e.target.value as any)
             }
-            className="input input-bordered p-2"
+            className="px-4 py-2 border border-slate-200 rounded-lg bg-white text-sm focus:outline-none focus:border-orange-500"
           >
-            <option value="all">All</option>
+            <option value="all">All Requests</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="denied">Denied</option>
           </select>
 
-          <Button onClick={loadLeaves}>Refresh</Button>
+          <Button onClick={loadLeaves} variant="outline">
+            Refresh
+          </Button>
         </div>
       </div>
 
-      {/* List Container */}
-      <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+      {/* Cards Container */}
+      <div className="space-y-3">
 
         {loading ? (
-          <div className="p-6 text-center text-slate-500">
-            Loading...
+          <div className="p-12 text-center text-slate-500">
+            <div className="animate-spin w-8 h-8 border-2 border-orange-200 border-t-orange-500 rounded-full mx-auto mb-4"></div>
+            Loading requests...
           </div>
         ) : leaves.length === 0 ? (
-          <div className="p-6 text-center text-slate-500">
-            No leave requests found.
+          <div className="p-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
+            <Clock className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+            <p className="font-medium">No leave requests found.</p>
+            <p className="text-sm mt-1">Check back later for new requests.</p>
           </div>
         ) : (
           leaves.map((l) => (
             <div
               key={l.id}
-              className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition"
+              className="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-md hover:border-slate-300 transition-smooth"
             >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
 
                 {/* Leave Info */}
-                <div className="space-y-1">
-                  <div className="text-sm">
-                    Caregiver ID:
-                    <span className="font-medium ml-1">
-                      {l.caregiver_id}
-                    </span>
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">
+                        Caregiver #{l.caregiver_id}
+                      </p>
+                      <p className="text-sm text-slate-500">
+                        {l.start_date} → {l.end_date}
+                        {l.days ? ` • ${l.days} days` : ''}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="text-sm text-slate-500">
-                    {l.start_date ?? '—'} → {l.end_date ?? '—'}
-                    {l.days ? ` (${l.days} days)` : ''}
-                  </div>
-
-                  <div className="text-sm text-slate-500">
-                    Reason: {l.reason ?? '—'}
-                  </div>
-
-                  <div className="text-xs mt-1">
-                    Status:
-                    <span
-                      className={`ml-1 capitalize font-medium ${
-                        l.status === 'approved'
-                          ? 'text-emerald-600'
-                          : l.status === 'denied'
-                          ? 'text-rose-600'
-                          : 'text-amber-600'
-                      }`}
-                    >
-                      {l.status ?? 'pending'}
-                    </span>
+                  <div className="ml-13 space-y-2">
+                    <div className="text-sm">
+                      <span className="text-slate-600">Reason: </span>
+                      <span className="text-slate-900 font-medium">{l.reason || 'Not specified'}</span>
+                    </div>
+                    <div>
+                      {getStatusBadge(l.status)}
+                    </div>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 md:ml-4">
                   <Button
                     size="sm"
                     disabled={
                       actioningId === l.id ||
                       l.status === 'approved'
                     }
+                    className="bg-emerald-600 hover:bg-emerald-700"
                     onClick={() =>
                       performAction(l.id, 'approve')
                     }

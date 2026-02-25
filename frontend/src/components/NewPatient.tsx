@@ -120,36 +120,65 @@ export function NewPatient() {
   };
 
   return (
-    <div className="space-y-8">
-
-      {/* Header */}
+    <div className="max-w-5xl mx-auto space-y-10">
+  
+      {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          New Patient
+        <h1 className="text-3xl font-semibold text-slate-900 dark:text-white">
+          New Patient Registration
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Enter patient details and care requirements.
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
+          Enter patient details and care requirements below.
         </p>
       </div>
-
-      {/* Form Container */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 space-y-8">
-
+  
+      {/* Form Card */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-8 space-y-10">
+  
         {/* Personal Information */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Personal Information
           </h2>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <input name="firstName" placeholder="First Name" value={formData.firstName} onChange={handleChange} className="input input-bordered p-2" />
-            <input name="middleName" placeholder="Middle Name" value={formData.middleName} onChange={handleChange} className="input input-bordered p-2" />
-            <input name="lastName" placeholder="Last Name" value={formData.lastName} onChange={handleChange} className="input input-bordered p-2" />
+  
+          <div className="grid md:grid-cols-3 gap-6">
+            <input
+              name="firstName"
+              placeholder="First Name"
+              value={formData.firstName}
+              onChange={handleChange}
+              className="input input-bordered p-3 rounded-lg"
+            />
+            <input
+              name="middleName"
+              placeholder="Middle Name"
+              value={formData.middleName}
+              onChange={handleChange}
+              className="input input-bordered p-3 rounded-lg"
+            />
+            <input
+              name="lastName"
+              placeholder="Last Name"
+              value={formData.lastName}
+              onChange={handleChange}
+              className="input input-bordered p-3 rounded-lg"
+            />
           </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <input type="date" name="dob" value={formData.dob} onChange={handleChange} className="input input-bordered p-2" />
-            <select name="gender" value={formData.gender} onChange={handleChange} className="input input-bordered p-2">
+  
+          <div className="grid md:grid-cols-2 gap-6">
+            <input
+              type="date"
+              name="dob"
+              value={formData.dob}
+              onChange={handleChange}
+              className="input input-bordered p-3 rounded-lg"
+            />
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className="input input-bordered p-3 rounded-lg"
+            >
               <option value="">Select Gender</option>
               <option>Male</option>
               <option>Female</option>
@@ -157,37 +186,56 @@ export function NewPatient() {
             </select>
           </div>
         </section>
-
+  
         {/* Contact Details */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Contact Details
           </h2>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <input name="phone" placeholder="Phone" value={formData.phone} onChange={handleChange} className="input input-bordered p-2" />
-            <input name="email" placeholder="Email" value={formData.email} onChange={handleChange} className="input input-bordered p-2" />
+  
+          <div className="grid md:grid-cols-2 gap-6">
+            <input
+              name="phone"
+              placeholder="Phone Number"
+              value={formData.phone}
+              onChange={handleChange}
+              className="input input-bordered p-3 rounded-lg"
+            />
+            <input
+              name="email"
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={handleChange}
+              className="input input-bordered p-3 rounded-lg"
+            />
           </div>
-
-          <input name="address" placeholder="Residential Address" value={formData.address} onChange={handleChange} className="input input-bordered p-2 w-full" />
+  
+          <textarea
+            name="address"
+            placeholder="Residential Address"
+            value={formData.address}
+            onChange={handleChange}
+            rows={3}
+            className="input input-bordered p-3 rounded-lg w-full"
+          />
         </section>
-
+  
         {/* Languages */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Preferred Languages
           </h2>
-
-          <div className="flex flex-wrap gap-2">
+  
+          <div className="flex flex-wrap gap-3">
             {languageOptions.map((lang) => (
               <button
                 key={lang}
                 type="button"
                 onClick={() => toggleLanguage(lang)}
-                className={`px-4 py-2 rounded-md text-sm border ${
+                className={`px-4 py-2 rounded-full text-sm font-medium transition ${
                   formData.languages.includes(lang)
-                    ? 'bg-emerald-600 text-white border-emerald-600'
-                    : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700'
+                    ? 'bg-emerald-600 text-white shadow'
+                    : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200'
                 }`}
               >
                 {lang}
@@ -195,68 +243,90 @@ export function NewPatient() {
             ))}
           </div>
         </section>
-
+  
         {/* Support Type */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Support Required
           </h2>
-
-          <div className="flex gap-6">
+  
+          <div className="flex gap-8">
             {['Nurse', 'Caretaker'].map((option) => (
-              <label key={option} className="flex items-center gap-2">
+              <label key={option} className="flex items-center gap-3 cursor-pointer">
                 <input
                   type="radio"
                   name="supportRequested"
                   value={option}
                   checked={formData.supportRequested === option}
                   onChange={handleChange}
+                  className="accent-emerald-600"
                 />
-                {option}
+                <span className="font-medium">{option}</span>
               </label>
             ))}
           </div>
         </section>
-
+  
         {/* Care Requirements */}
-        <section className="space-y-4">
-          <h2 className="font-semibold text-slate-900 dark:text-white">
+        <section className="space-y-6">
+          <h2 className="text-lg font-semibold border-b pb-2">
             Care Requirements
           </h2>
-
-          {Object.keys(formData.requirements).map((key) => (
-            <div key={key} className="flex justify-between items-center border p-3 rounded-md">
-              <span className="text-sm capitalize">{key}</span>
-              <div className="flex gap-4">
-                <label>
-                  <input
-                    type="radio"
-                    name={`requirements.${key}`}
-                    value="yes"
-                    checked={formData.requirements[key as keyof typeof formData.requirements] === true}
-                    onChange={handleChange}
-                  /> Yes
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name={`requirements.${key}`}
-                    value="no"
-                    checked={formData.requirements[key as keyof typeof formData.requirements] === false}
-                    onChange={handleChange}
-                  /> No
-                </label>
+  
+          <div className="grid md:grid-cols-2 gap-4">
+            {Object.keys(formData.requirements).map((key) => (
+              <div
+                key={key}
+                className="flex justify-between items-center border border-slate-200 dark:border-slate-700 rounded-lg p-4"
+              >
+                <span className="text-sm font-medium capitalize">
+                  {key.replace(/([A-Z])/g, ' $1')}
+                </span>
+  
+                <div className="flex gap-6 text-sm">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`requirements.${key}`}
+                      value="yes"
+                      checked={
+                        formData.requirements[
+                          key as keyof typeof formData.requirements
+                        ] === true
+                      }
+                      onChange={handleChange}
+                      className="accent-emerald-600"
+                    />
+                    Yes
+                  </label>
+  
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name={`requirements.${key}`}
+                      value="no"
+                      checked={
+                        formData.requirements[
+                          key as keyof typeof formData.requirements
+                        ] === false
+                      }
+                      onChange={handleChange}
+                      className="accent-rose-600"
+                    />
+                    No
+                  </label>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </section>
-
+  
         {/* Submit */}
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4">
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white px-6"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-lg shadow"
           >
             {loading ? 'Saving...' : 'Save Patient'}
           </Button>
@@ -265,5 +335,3 @@ export function NewPatient() {
     </div>
   );
 }
-
-export default NewPatient;

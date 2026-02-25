@@ -1,8 +1,13 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { FilePlus, Users } from 'lucide-react';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
+import {
+  FilePlus,
+  Users,
+  Calendar,
+  FileText,
+} from "lucide-react";
 
 function ActionCard({
   title,
@@ -47,38 +52,57 @@ export function PatientsLanding() {
   const navigate = useNavigate();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
 
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-          Patients
+          Patient Management
         </h1>
         <p className="text-slate-500 dark:text-slate-400 text-sm">
-          Manage patient registrations and existing records.
+          Manage patient registrations, care plans, schedules, and assignments.
         </p>
       </div>
 
-      {/* Action Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Action Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6">
+
+        {/* Register */}
         <ActionCard
           title="New Patient Registration"
           description="Register a new patient with personal, medical, and support details."
           icon={<FilePlus className="h-6 w-6 text-white" />}
           ctaLabel="Register Patient"
-          onClick={() => navigate('/patients/new')}
+          onClick={() => navigate("/patients/new")}
         />
 
+        {/* View */}
         <ActionCard
           title="View & Manage Patients"
           description="View, edit, and manage existing patient profiles."
           icon={<Users className="h-6 w-6 text-white" />}
           ctaLabel="View Patients"
-          onClick={() => navigate('/patients/view')}
+          onClick={() => navigate("/patients/view")}
+        />
+
+        {/* Schedule */}
+        <ActionCard
+          title="Patient Schedules"
+          description="View and manage visit schedules and assignments."
+          icon={<Calendar className="h-6 w-6 text-white" />}
+          ctaLabel="View Schedule"
+          onClick={() => navigate("/schedule")}
+        />
+
+        {/* Care Plan */}
+        <ActionCard
+          title="Care Plans"
+          description="View and manage patient care plans and tasks."
+          icon={<FileText className="h-6 w-6 text-white" />}
+          ctaLabel="Open Care Plans"
+          onClick={() => navigate("/careplan")}
         />
       </div>
     </div>
   );
 }
-
-export default PatientsLanding;

@@ -2,3 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 220 13% 20%;
+    
+    --primary: 12 100% 50%;
+    --primary-dark: 12 95% 45%;
+    
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 13% 20%;
+    
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 13% 20%;
+    
+    --muted: 220 13% 91%;
+    --muted-foreground: 220 12% 43%;
+    
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 220 13% 13%;
+    --foreground: 0 0% 98%;
+    
+    --primary: 12 100% 50%;
+    --primary-dark: 12 95% 55%;
+    
+    --secondary: 220 13% 23%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --accent: 220 13% 23%;
+    --accent-foreground: 0 0% 98%;
+    
+    --muted: 220 13% 27%;
+    --muted-foreground: 220 12% 64%;
+    
+    --border: 220 13% 27%;
+    --input: 220 13% 23%;
+    
+    --radius: 0.5rem;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .card-base {
+    @apply bg-background border border-border rounded-lg shadow-sm;
+  }
+
+  .transition-smooth {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  .text-balance-heading {
+    @apply text-pretty;
+  }
+}
+

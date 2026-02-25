@@ -49,85 +49,101 @@ export function UpcomingSchedules() {
     }
   };
 
+  const getServiceTypeColor = (type: string) => {
+    switch (type?.toLowerCase()) {
+      case 'physical therapy':
+        return 'bg-blue-100 text-blue-700';
+      case 'nursing':
+        return 'bg-emerald-100 text-emerald-700';
+      case 'personal care':
+        return 'bg-purple-100 text-purple-700';
+      default:
+        return 'bg-slate-100 text-slate-700';
+    }
+  };
+
   return (
     <div className="space-y-6">
 
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-bold text-slate-900">
             Upcoming Schedules
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <p className="text-sm text-slate-500">
             View and manage upcoming visits and care schedules.
           </p>
         </div>
 
-        <Button onClick={fetchSchedules}>
+        <Button onClick={fetchSchedules} variant="outline">
           Refresh
         </Button>
       </div>
 
-      {/* List Container */}
-      <div className="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+      {/* Schedules Container */}
+      <div className="space-y-3">
 
         {loading ? (
-          <div className="p-6 text-center text-slate-500">
+          <div className="p-12 text-center text-slate-500">
+            <div className="animate-spin w-8 h-8 border-2 border-orange-200 border-t-orange-500 rounded-full mx-auto mb-4"></div>
             Loading schedules...
           </div>
         ) : schedules.length === 0 ? (
-          <div className="p-6 text-center text-slate-500">
-            No upcoming schedules.
+          <div className="p-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-slate-200">
+            <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+            <p className="font-medium">No upcoming schedules.</p>
+            <p className="text-sm mt-1">All your schedules are up to date.</p>
           </div>
         ) : (
           schedules.map((schedule) => (
             <div
               key={schedule.id}
-              className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition"
+              className="bg-white border border-slate-200 rounded-xl p-6 hover:shadow-md hover:border-slate-300 transition-smooth"
             >
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
 
-                {/* Left Info */}
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-semibold text-slate-900 dark:text-white">
+                {/* Schedule Info */}
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="font-semibold text-slate-900 text-lg">
                         {schedule.patientName}
                       </div>
-                      <div className="text-sm text-slate-500">
-                        Caregiver: {schedule.caregiverName}
+                      <div className="text-sm text-slate-500 mt-1">
+                        With {schedule.caregiverName}
                       </div>
                     </div>
 
-                    <Badge variant="outline">
+                    <Badge className={`${getServiceTypeColor(schedule.serviceType)} border-0`}>
                       {schedule.serviceType}
                     </Badge>
                   </div>
 
-                  <div className="flex flex-wrap gap-4 text-sm text-slate-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      {schedule.date}
+                  <div className="grid grid-cols-3 gap-4 pt-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar className="h-4 w-4 text-slate-400" />
+                      <span className="text-slate-600">{schedule.date}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock size={14} />
-                      {schedule.time}
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="h-4 w-4 text-slate-400" />
+                      <span className="text-slate-600">{schedule.time}</span>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin size={14} />
-                      {schedule.location}
+                    <div className="flex items-center gap-2 text-sm">
+                      <MapPin className="h-4 w-4 text-slate-400" />
+                      <span className="text-slate-600">{schedule.location}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 md:ml-4">
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => console.log('Edit', schedule.id)}
                   >
-                    <Pencil size={14} className="mr-1" />
+                    <Pencil className="h-4 w-4 mr-1" />
                     Edit
                   </Button>
 
@@ -136,7 +152,7 @@ export function UpcomingSchedules() {
                     variant="destructive"
                     onClick={() => handleCancel(schedule.id)}
                   >
-                    <X size={14} className="mr-1" />
+                    <X className="h-4 w-4 mr-1" />
                     Cancel
                   </Button>
                 </div>
