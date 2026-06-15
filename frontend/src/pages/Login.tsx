@@ -1,16 +1,43 @@
 import { useState } from "react";
 import { Eye, EyeOff, LogIn } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { apiUrl } from "../config/api";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => setIsLoading(false), 1500);
+    setError(null);
+    try {
+      const res = await fetch(apiUrl("/api/v1/auth/login"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || "Authentication failed");
+      }
+      const data = await res.json();
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user_id", data.user_id);
+      localStorage.setItem("organization_id", data.organization_id);
+      localStorage.setItem("role", data.role);
+      localStorage.setItem("display_name", data.display_name || "");
+      localStorage.setItem("email", data.email || email);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Failed to log in");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,6 +62,11 @@ export default function Login() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="px-8 py-6 space-y-5">
+            {error && (
+              <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg font-medium">
+                {error}
+              </div>
+            )}
             {/* Email Field */}
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">

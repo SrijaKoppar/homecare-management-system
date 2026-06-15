@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   Users,
@@ -15,6 +15,8 @@ import {
   LogOut,
   Search,
 } from "lucide-react";
+import { listLeaveRequests } from "../lib/leaveRequestsApi";
+import { listPersons, type Person } from "../lib/personsApi";
 
 function cn(...classes: (string | false | undefined)[]) {
   return classes.filter(Boolean).join(" ");
@@ -33,7 +35,48 @@ const navItems = [
 export function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [pendingLeaves, setPendingLeaves] = useState(0);
+  const [search, setSearch] = useState("");
+  const [results, setResults] = useState<Person[]>([]);
   const location = useLocation();
+  const navigate = useNavigate();
+  const displayName = localStorage.getItem("display_name") || "Admin User";
+  const email = localStorage.getItem("email") || "admin@homecare.com";
+  const initials = useMemo(() => {
+    return displayName
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase())
+      .join("") || "AU";
+  }, [displayName]);
+
+  useEffect(() => {
+    listLeaveRequests("pending")
+      .then((items) => setPendingLeaves(items.length))
+      .catch(() => setPendingLeaves(0));
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (search.trim().length < 2) {
+      setResults([]);
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      listPersons({ search })
+        .then((items) => setResults(items.slice(0, 6)))
+        .catch(() => setResults([]));
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const handleLogout = () => {
+    ["token", "user_id", "organization_id", "role", "display_name", "email"].forEach((key) => {
+      localStorage.removeItem(key);
+    });
+    navigate("/login");
+  };
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -99,7 +142,10 @@ export function DashboardLayout() {
             <Settings className="h-5 w-5" />
             Settings
           </Link>
-          <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-smooth">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-smooth"
+          >
             <LogOut className="h-5 w-5" />
             Sign Out
           </button>
@@ -121,23 +167,65 @@ export function DashboardLayout() {
             </button>
 
             {/* Search Bar */}
-            <div className="hidden md:flex items-center gap-2 bg-slate-100 rounded-lg px-3 py-2 w-64">
+            <div className="hidden md:flex relative items-center gap-2 bg-slate-100 rounded-lg px-3 py-2 w-64">
               <Search className="h-4 w-4 text-slate-400" />
               <input
                 type="text"
                 placeholder="Search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 className="bg-transparent text-sm text-slate-900 placeholder-slate-400 outline-none w-full"
               />
+              {results.length > 0 && (
+                <div className="absolute top-12 left-0 w-80 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-20">
+                  {results.map((person) => (
+                    <button
+                      key={person.id}
+                      type="button"
+                      onClick={() => {
+                        setSearch("");
+                        setResults([]);
+                        navigate(`/people/${person.id}`);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-slate-50"
+                    >
+                      <p className="text-sm font-medium text-slate-900">
+                        {person.display_name || `${person.first_name} ${person.last_name}`}
+                      </p>
+                      <p className="text-xs text-slate-500">{person.email}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
           {/* Right Section */}
           <div className="flex items-center gap-4">
             {/* Notifications */}
-            <button className="relative p-2 hover:bg-slate-100 rounded-lg transition-smooth">
+            <button
+              className="relative p-2 hover:bg-slate-100 rounded-lg transition-smooth"
+              onClick={() => setShowNotifications((open) => !open)}
+            >
               <Bell className="h-5 w-5 text-slate-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              {pendingLeaves > 0 && <span className="absolute top-1 right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full text-[10px] leading-4 text-white">{pendingLeaves}</span>}
             </button>
+            {showNotifications && (
+              <div className="absolute right-20 top-14 w-72 bg-white rounded-lg shadow-lg border border-slate-200 py-3 z-20">
+                <p className="px-4 pb-2 text-sm font-semibold text-slate-900">Notifications</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNotifications(false);
+                    navigate("/");
+                  }}
+                  className="w-full text-left px-4 py-3 hover:bg-slate-50"
+                >
+                  <p className="text-sm text-slate-800">{pendingLeaves} pending leave request{pendingLeaves === 1 ? "" : "s"}</p>
+                  <p className="text-xs text-slate-500">Review on the dashboard.</p>
+                </button>
+              </div>
+            )}
 
             {/* User Menu */}
             <div className="relative">
@@ -146,7 +234,7 @@ export function DashboardLayout() {
                 className="flex items-center gap-3 p-2 hover:bg-slate-100 rounded-lg transition-smooth"
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                  AC
+                  {initials}
                 </div>
                 <ChevronDown className="h-4 w-4 text-slate-600" />
               </button>
@@ -155,8 +243,8 @@ export function DashboardLayout() {
               {showUserMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-10">
                   <div className="px-4 py-2 border-b border-slate-200">
-                    <p className="text-sm font-medium text-slate-900">Admin User</p>
-                    <p className="text-xs text-slate-500">admin@homecare.com</p>
+                    <p className="text-sm font-medium text-slate-900">{displayName}</p>
+                    <p className="text-xs text-slate-500">{email}</p>
                   </div>
                   <Link to="/profile" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-smooth">
                     Profile Settings
@@ -164,7 +252,10 @@ export function DashboardLayout() {
                   <Link to="/organization" className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-smooth">
                     Organization
                   </Link>
-                  <button className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-smooth border-t border-slate-200 mt-2 pt-2">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-smooth border-t border-slate-200 mt-2 pt-2"
+                  >
                     Sign Out
                   </button>
                 </div>

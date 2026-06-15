@@ -23,6 +23,7 @@ from backend.database.entities import (
     Message,
     VisitNote,
     CareNote,
+    LeaveRequest,
 )
 
 __all__ = [
@@ -45,4 +46,5 @@ __all__ = [
     "Message",
     "VisitNote",
     "CareNote",
+    "LeaveRequest",
 ]

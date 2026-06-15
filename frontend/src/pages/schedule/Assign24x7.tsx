@@ -1,26 +1,88 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Users, Calendar, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { createAssignment24x7, deleteAssignment24x7, listAssignments24x7, type Assignment24x7 } from "../../lib/assignments24x7Api";
+import { listPersons, type Person } from "../../lib/personsApi";
 
 export default function Assign24x7() {
   const navigate = useNavigate();
+  const [recipients, setRecipients] = useState<Person[]>([]);
+  const [caregivers, setCaregivers] = useState<Person[]>([]);
+  const [assignments, setAssignments] = useState<Assignment24x7[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     recipient: "",
     caregiver: "",
-    type: "Primary",
+    type: "primary",
     startDate: "",
     endDate: "",
     notes: "",
   });
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [recipientData, caregiverData, assignmentData] = await Promise.all([
+        listPersons({ role: "care_recipient" }),
+        listPersons({ role: "caregiver" }),
+        listAssignments24x7(),
+      ]);
+      setRecipients(recipientData);
+      setCaregivers(caregiverData);
+      setAssignments(assignmentData.filter((item) => item.status === "active"));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load assignment data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    alert("24/7 assignment saved!");
-    navigate("/schedule");
+  const handleSave = async () => {
+    if (!formData.recipient || !formData.caregiver || !formData.startDate) {
+      setError("Select a recipient, caregiver, and start date.");
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      await createAssignment24x7({
+        organization_id: localStorage.getItem("organization_id") || "00000000-0000-0000-0000-000000000000",
+        care_recipient_id: formData.recipient,
+        caregiver_id: formData.caregiver,
+        start_date: formData.startDate,
+        end_date: formData.endDate || null,
+        type: formData.type as "primary" | "relief",
+        notes: formData.notes || undefined,
+        status: "active",
+      });
+      await loadData();
+      setFormData({ recipient: "", caregiver: "", type: "primary", startDate: "", endDate: "", notes: "" });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save assignment");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const personName = (id: string) => {
+    const person = [...recipients, ...caregivers].find((p) => p.id === id);
+    return person?.display_name || (person ? `${person.first_name} ${person.last_name}` : "Unknown");
+  };
+
+  const handleCancelAssignment = async (id: string) => {
+    if (!confirm("Cancel this assignment?")) return;
+    await deleteAssignment24x7(id);
+    await loadData();
   };
 
   return (
@@ -54,6 +116,12 @@ export default function Assign24x7() {
             </p>
           </div>
 
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+              {error}
+            </div>
+          )}
+
           <form className="space-y-6">
             {/* Care Recipient */}
             <div>
@@ -68,10 +136,12 @@ export default function Assign24x7() {
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
                 >
-                  <option>Select recipient...</option>
-                  <option>Mary Smith</option>
-                  <option>John K</option>
-                  <option>Alice Brown</option>
+                  <option value="">Select recipient...</option>
+                  {recipients.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.display_name || `${person.first_name} ${person.last_name}`}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -89,10 +159,12 @@ export default function Assign24x7() {
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
                 >
-                  <option>Select caregiver...</option>
-                  <option>Jane Doe</option>
-                  <option>Mike Johnson</option>
-                  <option>Sarah Wilson</option>
+                  <option value="">Select caregiver...</option>
+                  {caregivers.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.display_name || `${person.first_name} ${person.last_name}`}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -108,9 +180,8 @@ export default function Assign24x7() {
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
               >
-                <option>Primary</option>
-                <option>Relief</option>
-                <option>Backup</option>
+                <option value="primary">Primary</option>
+                <option value="relief">Relief</option>
               </select>
             </div>
 
@@ -177,12 +248,41 @@ export default function Assign24x7() {
               <button
                 type="button"
                 onClick={handleSave}
+                disabled={loading}
                 className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-medium transition-smooth"
               >
-                Save Assignment
+                {loading ? "Saving..." : "Save Assignment"}
               </button>
             </div>
           </form>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm mt-6">
+          <h2 className="text-lg font-bold text-slate-900 mb-4">Current 24/7 Assignments</h2>
+          {assignments.length === 0 ? (
+            <p className="text-sm text-slate-500">No active 24/7 assignments.</p>
+          ) : (
+            <div className="space-y-3">
+              {assignments.map((assignment) => (
+                <div key={assignment.id} className="border border-slate-200 rounded-lg p-4 flex items-center justify-between gap-4">
+                  <div>
+                    <p className="font-semibold text-slate-900">{personName(assignment.care_recipient_id)}</p>
+                    <p className="text-sm text-slate-500">
+                      {personName(assignment.caregiver_id)} · {assignment.type} · {assignment.start_date}
+                      {assignment.end_date ? ` to ${assignment.end_date}` : " onward"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleCancelAssignment(assignment.id)}
+                    className="px-3 py-2 text-sm border border-red-200 text-red-600 rounded-lg hover:bg-red-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

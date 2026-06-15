@@ -1,5 +1,5 @@
 // ThemeProvider.tsx
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Sun, Moon } from 'lucide-react';
 import { Button } from './ui/button';
 
@@ -82,7 +82,7 @@ export function useTheme() {
     // safe fallback
     return {
       theme: 'light' as Theme,
-      setTheme: (t: Theme) => {},
+      setTheme: (_theme: Theme) => {},
       toggleTheme: () => {},
     };
   }

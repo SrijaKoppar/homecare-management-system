@@ -4,10 +4,10 @@ Visit note endpoints.
 One visit note per visit, authored by a caregiver.
 """
 
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from backend.apis.dependencies import get_db_session, get_current_user_id
@@ -24,13 +24,16 @@ router = APIRouter(prefix="/visit-notes", tags=["Visit notes"])
 
 @router.get("", response_model=List[VisitNoteResponse])
 def list_visit_notes(
+    visit_id: Optional[UUID] = Query(default=None),
     db: Session = Depends(get_db_session),
 ) -> List[VisitNoteResponse]:
     """
     List all visit notes.
     """
-    notes = db.query(VisitNote).order_by(VisitNote.created_at.desc()).all()
-    return notes
+    q = db.query(VisitNote)
+    if visit_id is not None:
+        q = q.filter(VisitNote.visit_id == visit_id)
+    return q.order_by(VisitNote.created_at.desc()).all()
 
 
 @router.get("/{note_id}", response_model=VisitNoteResponse)
@@ -56,14 +59,19 @@ def create_visit_note(
 
     Enforces one note per visit by checking for an existing note first.
     """
+    author_id = payload.author_id or current_user_id
+
     existing = db.query(VisitNote).filter(VisitNote.visit_id == payload.visit_id).first()
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="A visit note already exists for this visit.",
-        )
-
-    author_id = payload.author_id or current_user_id
+        existing.author_id = author_id
+        existing.summary = payload.summary
+        existing.mood = payload.mood
+        existing.incidents = payload.incidents
+        existing.next_steps = payload.next_steps
+        db.add(existing)
+        db.commit()
+        db.refresh(existing)
+        return existing
 
     note = VisitNote(
         visit_id=payload.visit_id,

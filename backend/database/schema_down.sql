@@ -6,6 +6,7 @@
 BEGIN;
 
 -- Drop tables in reverse dependency order
+DROP TABLE IF EXISTS leave_request;
 DROP TABLE IF EXISTS care_note;
 DROP TABLE IF EXISTS visit_note;
 DROP TABLE IF EXISTS message;

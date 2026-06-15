@@ -4,7 +4,7 @@ Shared API dependencies: DB session, current user, current organization.
 Replace stubs with real auth (JWT, session) and DB session injection.
 """
 
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import Depends, Header
 from sqlalchemy.orm import Session
@@ -12,29 +12,44 @@ from sqlalchemy.orm import Session
 from backend.database.session import get_db
 
 
-# Stub: in production, resolve from JWT or session
+def _parse_token(authorization: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """Parse custom token form: Bearer token:<user_id>:<org_id>:<role>"""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None, None
+    token_str = authorization.replace("Bearer ", "", 1)
+    if not token_str.startswith("token:"):
+        return None, None
+    parts = token_str.split(":")
+    if len(parts) >= 3:
+        return parts[1], parts[2]
+    return None, None
+
+
+# Resolves authenticated user ID
 def get_current_user_id(
-    x_user_id: Annotated[str | None, Header(alias="X-User-Id")] = None,
+    authorization: Annotated[Optional[str], Header(alias="Authorization")] = None,
+    x_user_id: Annotated[Optional[str], Header(alias="X-User-Id")] = None,
 ) -> str:
     """
-    Current authenticated user ID.
-
-    For now this is a simple stub that reads the `X-User-Id` header or falls back
-    to a fixed UUID so that the rest of the backend can be exercised without
-    full auth in place.
+    Current authenticated user ID. Parses Bearer token or X-User-Id header.
     """
+    u_id, _ = _parse_token(authorization)
+    if u_id:
+        return u_id
     return x_user_id or "00000000-0000-0000-0000-000000000000"
 
 
-# Stub: in production, resolve from context (e.g. selected org for the user)
+# Resolves current organization context
 def get_current_organization_id(
-    x_organization_id: Annotated[str | None, Header(alias="X-Organization-Id")] = None,
+    authorization: Annotated[Optional[str], Header(alias="Authorization")] = None,
+    x_organization_id: Annotated[Optional[str], Header(alias="X-Organization-Id")] = None,
 ) -> str:
     """
-    Current organization context for scoped queries.
-
-    Reads `X-Organization-Id` header or uses a fixed UUID placeholder.
+    Current organization context. Parses Bearer token or X-Organization-Id header.
     """
+    _, org_id = _parse_token(authorization)
+    if org_id:
+        return org_id
     return x_organization_id or "00000000-0000-0000-0000-000000000000"
 
 

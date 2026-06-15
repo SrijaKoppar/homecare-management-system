@@ -1,29 +1,106 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Calendar, Users, Clock, MapPin } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { listPersons, Person } from "../../lib/personsApi";
+import { createVisit, getVisit, updateVisit } from "../../lib/visitsApi";
 
 export default function NewVisit() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const [recipients, setRecipients] = useState<Person[]>([]);
+  const [caregivers, setCaregivers] = useState<Person[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
-    recipient: "",
-    caregiver: "",
-    visitType: "Personal care",
+    care_recipient_id: "",
+    assigned_caregiver_id: "",
+    visit_type: "personal_care",
     startDate: "",
     startTime: "",
     endDate: "",
     endTime: "",
-    address: "123 Oak St (default)",
-    repeats: "No",
+    address: "",
   });
+
+  useEffect(() => {
+    const fetchPersons = async () => {
+      setLoading(true);
+      try {
+        const [recipientData, caregiverData] = await Promise.all([
+          listPersons({ role: "care_recipient" }),
+          listPersons({ role: "caregiver" }),
+        ]);
+        setRecipients(recipientData);
+        setCaregivers(caregiverData);
+        if (id) {
+          const visit = await getVisit(id);
+          const start = new Date(visit.scheduled_start);
+          const end = new Date(visit.scheduled_end);
+          setFormData({
+            care_recipient_id: visit.care_recipient_id,
+            assigned_caregiver_id: visit.assigned_caregiver_id || "",
+            visit_type: visit.visit_type,
+            startDate: start.toISOString().slice(0, 10),
+            startTime: start.toISOString().slice(11, 16),
+            endDate: end.toISOString().slice(0, 10),
+            endTime: end.toISOString().slice(11, 16),
+            address: visit.address_street || "",
+          });
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to load persons");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPersons();
+  }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    alert("Visit saved!");
-    navigate("/schedule");
+  const handleSave = async () => {
+    if (!formData.care_recipient_id) {
+      setError("Please select a care recipient");
+      return;
+    }
+    if (!formData.startDate || !formData.startTime || !formData.endDate || !formData.endTime) {
+      setError("Please fill in start and end times");
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+      
+      const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`).toISOString();
+      const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`).toISOString();
+
+      const payload = {
+        organization_id: localStorage.getItem("organization_id") || "00000000-0000-0000-0000-000000000000",
+        care_recipient_id: formData.care_recipient_id,
+        assigned_caregiver_id: formData.assigned_caregiver_id || undefined,
+        visit_type: formData.visit_type as any,
+        scheduled_start: startDateTime,
+        scheduled_end: endDateTime,
+        address_street: formData.address,
+      };
+      if (id) {
+        await updateVisit(id, payload);
+      } else {
+        await createVisit(payload);
+      }
+
+      navigate("/schedule");
+    } catch (err: any) {
+      setError(err.message || "Failed to save visit");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -42,12 +119,18 @@ export default function NewVisit() {
         <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-slate-900 text-balance-heading">
-              New Visit
+              {id ? "Edit Visit" : "New Visit"}
             </h1>
             <p className="text-slate-500 mt-2">
               Schedule a visit with a care recipient.
             </p>
           </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-200">
+              {error}
+            </div>
+          )}
 
           <form className="space-y-6">
             {/* Care Recipient */}
@@ -58,15 +141,16 @@ export default function NewVisit() {
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <select
-                  name="recipient"
-                  value={formData.recipient}
+                  name="care_recipient_id"
+                  value={formData.care_recipient_id}
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
+                  disabled={loading}
                 >
-                  <option>Select recipient...</option>
-                  <option>Mary Smith</option>
-                  <option>John K</option>
-                  <option>Alice Brown</option>
+                  <option value="">Select recipient...</option>
+                  {recipients.map(p => (
+                    <option key={p.id} value={p.id}>{p.display_name || `${p.first_name} ${p.last_name}`}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -79,15 +163,16 @@ export default function NewVisit() {
               <div className="relative">
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <select
-                  name="caregiver"
-                  value={formData.caregiver}
+                  name="assigned_caregiver_id"
+                  value={formData.assigned_caregiver_id}
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
+                  disabled={loading}
                 >
-                  <option>Unassigned</option>
-                  <option>Jane Doe</option>
-                  <option>Mike Johnson</option>
-                  <option>Sarah Wilson</option>
+                  <option value="">Unassigned</option>
+                  {caregivers.map(p => (
+                    <option key={p.id} value={p.id}>{p.display_name || `${p.first_name} ${p.last_name}`}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -98,15 +183,16 @@ export default function NewVisit() {
                 Visit Type
               </label>
               <select
-                name="visitType"
-                value={formData.visitType}
+                name="visit_type"
+                value={formData.visit_type}
                 onChange={handleChange}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
               >
-                <option>Personal care</option>
-                <option>Nursing</option>
-                <option>Companionship</option>
-                <option>Physical therapy</option>
+                <option value="personal_care">Personal care</option>
+                <option value="nursing">Nursing</option>
+                <option value="companionship">Companionship</option>
+                <option value="respite">Respite</option>
+                <option value="other">Other</option>
               </select>
             </div>
 
@@ -190,6 +276,7 @@ export default function NewVisit() {
                 <input
                   type="text"
                   name="address"
+                  placeholder="123 Oak St (optional)"
                   value={formData.address}
                   onChange={handleChange}
                   className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
@@ -197,39 +284,25 @@ export default function NewVisit() {
               </div>
             </div>
 
-            {/* Repeats */}
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Repeats?
-              </label>
-              <select
-                name="repeats"
-                value={formData.repeats}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
-              >
-                <option>No</option>
-                <option>Daily</option>
-                <option>Weekly</option>
-                <option>Monthly</option>
-              </select>
-            </div>
-
+            {/* Repeats - omitted for brevity or could be added later */}
+            
             {/* Buttons */}
             <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => navigate("/schedule")}
                 className="px-6 py-2.5 border border-slate-200 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-smooth"
+                disabled={saving}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSave}
-                className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-medium transition-smooth"
+                disabled={saving}
+                className="px-6 py-2.5 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-medium transition-smooth disabled:opacity-50"
               >
-                Save Visit
+                {saving ? "Saving..." : id ? "Update Visit" : "Save Visit"}
               </button>
             </div>
           </form>

@@ -8,8 +8,26 @@ from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from backend.apis.routes import health, persons, organizations
+from backend.apis.routes import (
+    health,
+    persons,
+    organizations,
+    memberships,
+    care_relationships,
+    care_arrangements,
+    visits,
+    visit_notes,
+    tasks,
+    locations,
+    auth,
+    care_plans,
+    assignments_24x7,
+    care_notes,
+    conversations,
+    leave_requests,
+)
 
 
 @asynccontextmanager
@@ -27,9 +45,40 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5000",
+            "http://127.0.0.1:5000",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     app.include_router(health.router, tags=["Health"])
-    app.include_router(persons.router, prefix="/api/v1")
-    app.include_router(organizations.router, prefix="/api/v1")
+
+    api_v1_routers = (
+        persons,
+        organizations,
+        memberships,
+        care_relationships,
+        care_arrangements,
+        visits,
+        visit_notes,
+        tasks,
+        locations,
+        auth,
+        care_plans,
+        assignments_24x7,
+        care_notes,
+        conversations,
+        leave_requests,
+    )
+    for route_module in api_v1_routers:
+        app.include_router(route_module.router, prefix="/api/v1")
 
     return app
 

@@ -1,18 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Plus, Trash2, Pencil } from 'lucide-react';
 import { Button } from './ui/button';
-import { API_BASE } from '../config/api';
+import { deletePerson, listPersons, type Person } from '../lib/personsApi';
 import { useNavigate } from 'react-router-dom';
 
-type Caregiver = {
-  id: number;
-  first_name?: string | null;
-  middle_name?: string | null;
-  last_name?: string | null;
-  phone?: string | null;
-  email?: string | null;
-  languages?: string | null;
-};
+type Caregiver = Person;
 
 export function ViewModifyCaregivers() {
   const [caregivers, setCaregivers] = useState<Caregiver[]>([]);
@@ -26,17 +18,18 @@ export function ViewModifyCaregivers() {
   const fetchCaregivers = async () => {
     setLoading(true);
     try {
-      const url = new URL(`${API_BASE}/api/caregivers`);
-      url.searchParams.set('page', String(page));
-      url.searchParams.set('per_page', '20');
-      if (search.trim()) url.searchParams.set('search', search.trim());
-
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error(await res.text());
-
-      const json = await res.json();
-      setCaregivers(json.items ?? []);
-      setTotalPages(json.pages ?? null);
+      const all = await listPersons({ role: 'caregiver', search });
+      const term = search.trim().toLowerCase();
+      const filtered = term
+        ? all.filter((p) => {
+            const name = (p.display_name ?? `${p.first_name} ${p.last_name}`).toLowerCase();
+            return name.includes(term) || p.email.toLowerCase().includes(term);
+          })
+        : all;
+      const pageSize = 20;
+      const start = (page - 1) * pageSize;
+      setCaregivers(filtered.slice(start, start + pageSize));
+      setTotalPages(Math.max(1, Math.ceil(filtered.length / pageSize)));
     } catch (err) {
       console.error(err);
       setCaregivers([]);
@@ -47,16 +40,16 @@ export function ViewModifyCaregivers() {
 
   useEffect(() => {
     fetchCaregivers();
-    // eslint-disable-next-line
-  }, [page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search]);
 
-  const deleteCaregiver = async (id: number) => {
+  const deleteCaregiver = async (id: string) => {
     if (!confirm('Delete caregiver?')) return;
     try {
-      await fetch(`${API_BASE}/api/caregivers/${id}`, { method: 'DELETE' });
+      await deletePerson(id);
       fetchCaregivers();
-    } catch {
-      alert('Delete failed');
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -116,13 +109,10 @@ export function ViewModifyCaregivers() {
             >
               <div className="flex-1">
                 <div className="font-semibold text-slate-900">
-                  {c.first_name} {c.middle_name ?? ''} {c.last_name}
+                  {c.display_name || `${c.first_name} ${c.last_name}`}
                 </div>
                 <div className="text-sm text-slate-600 mt-1">
-                  {c.email ?? '—'} • {c.phone ?? '—'}
-                </div>
-                <div className="text-xs text-slate-500 mt-2 bg-slate-50 w-fit px-2 py-1 rounded">
-                  Languages: {c.languages ?? 'Not specified'}
+                  {c.email ?? '—'} {c.phone ? `• ${c.phone}` : ''}
                 </div>
               </div>
 
@@ -130,7 +120,7 @@ export function ViewModifyCaregivers() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => navigate(`/caregivers/${c.id}`)}
+                  onClick={() => navigate(`/people/${c.id}`)}
                   className="flex items-center gap-1 border-slate-200 hover:bg-slate-50"
                 >
                   <Pencil size={14} />

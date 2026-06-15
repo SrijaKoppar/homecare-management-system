@@ -18,6 +18,7 @@ from backend.database.entities.conversation import Conversation, ConversationPar
 from backend.database.entities.message import Message
 from backend.database.entities.visit_note import VisitNote
 from backend.database.entities.care_note import CareNote
+from backend.database.entities.leave_request import LeaveRequest
 
 __all__ = [
     "User",
@@ -35,4 +36,5 @@ __all__ = [
     "Message",
     "VisitNote",
     "CareNote",
+    "LeaveRequest",
 ]

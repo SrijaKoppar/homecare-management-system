@@ -1,16 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Search, Plus, Trash2, Pencil } from 'lucide-react';
 import { Button } from './ui/button';
-import { API_BASE } from '../config/api';
+import { deletePerson, listPersons, type Person } from '../lib/personsApi';
 import { useNavigate } from 'react-router-dom';
 
-interface Patient {
-  id: number;
-  name: string;
-  phone: string;
-  email: string;
-  assignedCaregiver?: string | null;
-}
+type Patient = Person & { assignedCaregiver?: string | null };
 
 export function ViewModifyPatients() {
   const [patients, setPatients] = useState<Patient[]>([]);
@@ -21,12 +15,15 @@ export function ViewModifyPatients() {
   const loadPatients = async () => {
     setLoading(true);
     try {
-      const url = new URL(`${API_BASE}/api/patients`);
-      if (search.trim()) url.searchParams.set('search', search.trim());
-      const res = await fetch(url.toString());
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setPatients(json.items ?? json ?? []);
+      const all = await listPersons({ role: 'care_recipient', search });
+      const term = search.trim().toLowerCase();
+      const filtered = term
+        ? all.filter((p) => {
+            const name = (p.display_name ?? `${p.first_name} ${p.last_name}`).toLowerCase();
+            return name.includes(term) || p.email.toLowerCase().includes(term);
+          })
+        : all;
+      setPatients(filtered);
     } catch (err) {
       console.error(err);
       setPatients([]);
@@ -40,13 +37,13 @@ export function ViewModifyPatients() {
     // eslint-disable-next-line
   }, [search]);
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Delete patient?')) return;
     try {
-      await fetch(`${API_BASE}/api/patients/${id}`, { method: 'DELETE' });
+      await deletePerson(id);
       loadPatients();
     } catch (err) {
-      alert('Delete failed');
+      alert(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 
@@ -103,10 +100,10 @@ export function ViewModifyPatients() {
             >
               <div className="flex-1">
                 <div className="font-semibold text-slate-900">
-                  {p.name}
+                  {p.display_name || `${p.first_name} ${p.last_name}`}
                 </div>
                 <div className="text-sm text-slate-600 mt-1">
-                  {p.email} • {p.phone}
+                  {p.email} {p.phone ? `• ${p.phone}` : ''}
                 </div>
                 <div className="text-xs text-slate-500 mt-2 bg-slate-50 w-fit px-2 py-1 rounded">
                   Assigned: {p.assignedCaregiver || 'Unassigned'}
@@ -117,7 +114,7 @@ export function ViewModifyPatients() {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => navigate(`/patients/${p.id}`)}
+                  onClick={() => navigate(`/people/${p.id}`)}
                   className="flex items-center gap-1 border-slate-200 hover:bg-slate-50"
                 >
                   <Pencil size={14} />

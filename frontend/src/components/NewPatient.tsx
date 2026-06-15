@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { API_BASE } from '../config/api';
+import { createPerson, toPersonPayload } from '../lib/personsApi';
 
 interface PatientForm {
   firstName: string;
@@ -86,10 +86,10 @@ export function NewPatient() {
   const validate = () => {
     if (!formData.firstName.trim()) return 'First name required';
     if (!formData.lastName.trim()) return 'Last name required';
+    if (!formData.email.trim()) return 'Email is required';
+    if (!/\S+@\S+\.\S+/.test(formData.email)) return 'Invalid email';
     if (!/^\d{7,15}$/.test(formData.phone))
       return 'Phone must be 7–15 digits';
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email))
-      return 'Invalid email';
     return null;
   };
 
@@ -102,18 +102,23 @@ export function NewPatient() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/patients`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) throw new Error(await res.text());
+      await createPerson(
+        {
+          ...toPersonPayload({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          middleName: formData.middleName,
+          email: formData.email,
+          phone: formData.phone,
+          }),
+          role: 'care_recipient',
+        }
+      );
 
       alert('Patient registered successfully');
       setFormData(initialFormState);
-    } catch (err: any) {
-      alert('Error: ' + err.message);
+    } catch (err: unknown) {
+      alert('Error: ' + (err instanceof Error ? err.message : 'Registration failed'));
     } finally {
       setLoading(false);
     }

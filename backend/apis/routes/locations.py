@@ -93,6 +93,27 @@ def create_location(
     return location
 
 
+@router.delete("/{location_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_location(
+    location_id: UUID,
+    db: Session = Depends(get_db_session),
+    organization_id: str = Depends(get_current_organization_id),
+) -> None:
+    """Delete a location for the current organization."""
+    location = (
+        db.query(Location)
+        .filter(
+            Location.id == location_id,
+            Location.organization_id == organization_id,
+        )
+        .first()
+    )
+    if not location:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Location not found")
+    db.delete(location)
+    db.commit()
+
+
 @router.patch("/{location_id}", response_model=LocationResponse)
 def update_location(
     location_id: UUID,

@@ -367,4 +367,24 @@ CREATE TRIGGER trg_care_note_set_updated_at
 BEFORE UPDATE ON care_note
 FOR EACH ROW EXECUTE FUNCTION set_updated_at_now();
 
+-- -----------------------------
+-- leave_request
+-- -----------------------------
+CREATE TABLE IF NOT EXISTS leave_request (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+
+  organization_id uuid NOT NULL REFERENCES organization(id) ON DELETE CASCADE,
+  caregiver_id uuid NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+  start_date date NOT NULL,
+  end_date date NOT NULL,
+  reason varchar(500),
+  status varchar(20) NOT NULL DEFAULT 'pending'
+);
+
+CREATE TRIGGER trg_leave_request_set_updated_at
+BEFORE UPDATE ON leave_request
+FOR EACH ROW EXECUTE FUNCTION set_updated_at_now();
+
 COMMIT;

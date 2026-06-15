@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 
 class MembershipRole(str, Enum):
+    CARE_RECIPIENT = "care_recipient"
     FAMILY_VIEWER = "family_viewer"
     FAMILY_EDITOR = "family_editor"
     CAREGIVER = "caregiver"
