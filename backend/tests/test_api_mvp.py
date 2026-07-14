@@ -75,3 +75,51 @@ def test_list_persons_filtered_by_role(client, seed_org_and_admin):
     caregivers = res.json()
     assert any(p["email"] == caregiver_email for p in caregivers)
     assert all(p["role"] == "caregiver" for p in caregivers)
+
+
+def test_update_organization(client, seed_org_and_admin):
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": seed_org_and_admin["email"], "password": seed_org_and_admin["password"]},
+    )
+    token = login.json()["token"]
+    org_id = login.json()["organization_id"]
+    headers = auth_headers(token)
+
+    res = client.patch(
+        f"/api/v1/organizations/{org_id}",
+        headers=headers,
+        json={"name": "Updated Org Name"},
+    )
+    assert res.status_code == 200
+    assert res.json()["name"] == "Updated Org Name"
+
+
+def test_delete_location(client, seed_org_and_admin):
+    login = client.post(
+        "/api/v1/auth/login",
+        json={"email": seed_org_and_admin["email"], "password": seed_org_and_admin["password"]},
+    )
+    token = login.json()["token"]
+    org_id = login.json()["organization_id"]
+    headers = auth_headers(token)
+
+    # Create location
+    create_res = client.post(
+        "/api/v1/locations",
+        headers=headers,
+        json={"name": "HQ", "organization_id": org_id, "is_default": True},
+    )
+    assert create_res.status_code == 201
+    loc_id = create_res.json()["id"]
+
+    # Delete location
+    del_res = client.delete(
+        f"/api/v1/locations/{loc_id}",
+        headers=headers,
+    )
+    assert del_res.status_code == 204
+
+    # Verify deleted
+    get_res = client.get(f"/api/v1/locations/{loc_id}", headers=headers)
+    assert get_res.status_code == 404

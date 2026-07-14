@@ -5,8 +5,15 @@ Care plan request and response schemas.
 from datetime import date, datetime
 from typing import Optional, List, Any
 from uuid import UUID
+from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
+
+
+class CarePlanStatus(str, Enum):
+    ACTIVE = "active"
+    DRAFT = "draft"
+    ARCHIVED = "archived"
 
 
 class CarePlanBase(BaseModel):
@@ -20,7 +27,7 @@ class CarePlanBase(BaseModel):
     template_id: Optional[UUID] = None
     effective_from: date
     effective_to: Optional[date] = None
-    status: str = Field("active", max_length=20)
+    status: CarePlanStatus = Field(CarePlanStatus.ACTIVE)
 
     @field_validator("effective_to")
     @classmethod

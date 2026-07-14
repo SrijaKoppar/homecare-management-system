@@ -1,8 +1,7 @@
 """
 Person (user) endpoints.
 
-CRUD and listing for people. For MVP we treat `User` as global (not yet
-scoped by organization membership in these endpoints).
+CRUD and listing for people, scoped by organization membership.
 """
 
 from typing import List
@@ -15,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.apis.schemas.person import PersonResponse, PersonCreate, PersonUpdate
+from backend.apis.schemas.membership import MembershipRole
 from backend.apis.dependencies import get_current_organization_id, get_db_session
 from backend.apis.security import hash_password
 from backend.database.entities.membership import Membership
@@ -47,16 +47,13 @@ def _person_response(user: User, membership: Membership | None = None) -> Person
 def list_persons(
     db: Session = Depends(get_db_session),
     organization_id: str = Depends(get_current_organization_id),
-    role: str | None = Query(default=None),
+    role: MembershipRole | None = Query(default=None),
     search: str | None = Query(default=None),
     limit: int = Query(50, ge=1, le=MAX_PAGE_SIZE),
     offset: int = Query(0, ge=0),
 ) -> List[PersonResponse]:
     """
-    List all persons (users).
-
-    In a future iteration this should be scoped by organization membership
-    and the current authenticated user.
+    List persons (users) scoped by organization membership.
     """
     query = (
         db.query(User, Membership)
@@ -68,7 +65,7 @@ def list_persons(
         )
     )
     if role:
-        query = query.filter(Membership.role == role)
+        query = query.filter(Membership.role == role.value)
     if search:
         term = f"%{search.strip()}%"
         query = query.filter(
@@ -138,7 +135,7 @@ def create_person(
         role=(payload.role or "family_viewer").value if hasattr(payload.role, "value") else (payload.role or "family_viewer"),
         title=payload.title,
         location_id=payload.location_id,
-        status="invited",
+        status=(payload.status.value if hasattr(payload.status, "value") else payload.status) if payload.status else "invited",
     )
     db.add(membership)
     try:
@@ -156,17 +153,23 @@ def create_person(
 
 
 @router.get("/{person_id}", response_model=PersonResponse)
-def get_person(person_id: UUID, db: Session = Depends(get_db_session)) -> PersonResponse:
+def get_person(
+    person_id: UUID,
+    db: Session = Depends(get_db_session),
+    org_id: str = Depends(get_current_organization_id),
+) -> PersonResponse:
     """Get a person by ID."""
     user = db.get(User, person_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
-    membership = (
-        db.query(Membership)
-        .filter(Membership.user_id == person_id)
-        .order_by(Membership.created_at.desc())
-        .first()
-    )
+    
+    membership = None
+    if org_id:
+        membership = (
+            db.query(Membership)
+            .filter(Membership.user_id == person_id, Membership.organization_id == org_id)
+            .first()
+        )
     return _person_response(user, membership)
 
 
@@ -219,11 +222,35 @@ def update_person(
 
 
 @router.delete("/{person_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_person(person_id: UUID, db: Session = Depends(get_db_session)) -> None:
-    """Archive a person (soft delete). Excluded from default list queries."""
+def delete_person(
+    person_id: UUID,
+    db: Session = Depends(get_db_session),
+    org_id: str = Depends(get_current_organization_id),
+) -> None:
+    """Soft delete a person by marking membership inactive or user archived."""
     user = db.get(User, person_id)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
-    user.status = "archived"
-    db.add(user)
+
+    membership = (
+        db.query(Membership)
+        .filter(Membership.user_id == person_id, Membership.organization_id == UUID(org_id))
+        .first()
+    )
+
+    if membership:
+        membership.status = "inactive"
+        db.add(membership)
+
+    # Check if there are any other active memberships for this user
+    other_memberships_count = (
+        db.query(Membership)
+        .filter(Membership.user_id == person_id, Membership.status != "inactive")
+        .count()
+    )
+
+    if other_memberships_count == 0:
+        user.status = "archived"
+        db.add(user)
+
     db.commit()

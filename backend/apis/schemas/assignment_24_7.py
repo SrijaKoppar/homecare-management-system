@@ -5,8 +5,21 @@ Assignment 24x7 request and response schemas.
 from datetime import date, time, datetime
 from typing import Optional, Any
 from uuid import UUID
+from enum import Enum
 
 from pydantic import BaseModel, Field, field_validator
+
+
+class AssignmentType(str, Enum):
+    PRIMARY = "primary"
+    BACKUP = "backup"
+    RELIEF = "relief"
+
+
+class AssignmentStatus(str, Enum):
+    ACTIVE = "active"
+    CANCELLED = "cancelled"
+    COMPLETED = "completed"
 
 
 class Assignment24x7Base(BaseModel):
@@ -19,9 +32,9 @@ class Assignment24x7Base(BaseModel):
     end_date: Optional[date] = None
     start_time: Optional[time] = None
     end_time: Optional[time] = None
-    type: str = Field("primary", max_length=20)
+    type: AssignmentType = Field(AssignmentType.PRIMARY)
     notes: Optional[str] = Field(None, max_length=500)
-    status: str = Field("active", max_length=20)
+    status: AssignmentStatus = Field(AssignmentStatus.ACTIVE)
 
     @field_validator("end_date")
     @classmethod

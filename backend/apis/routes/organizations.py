@@ -1,8 +1,7 @@
 """
 Organization endpoints.
 
-List and manage organizations. In a later iteration these should be scoped by
-membership and roles; for now they are global.
+List and manage organizations.
 """
 
 from typing import List
@@ -16,7 +15,6 @@ from backend.apis.dependencies import get_db_session
 from backend.database.entities.organization import Organization
 
 router = APIRouter(prefix="/organizations", tags=["Organizations"])
-
 
 @router.get("", response_model=List[OrganizationResponse])
 def list_organizations(db: Session = Depends(get_db_session)) -> List[OrganizationResponse]:

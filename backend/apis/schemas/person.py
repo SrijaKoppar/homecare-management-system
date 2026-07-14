@@ -36,6 +36,7 @@ class PersonCreate(PersonBase):
     title: Optional[str] = None
     location_id: Optional[UUID] = None
     password: Optional[str] = None
+    status: Optional[MembershipStatus] = None
 
 
 class PersonUpdate(BaseModel):

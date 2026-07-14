@@ -249,7 +249,21 @@ export default function PersonProfile() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 pb-8 border-b border-slate-200">
+        <div className="grid md:grid-cols-3 gap-8 pb-8 border-b border-slate-200">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
+              Membership
+            </h3>
+            <p className="text-lg font-semibold text-slate-900">
+              {person.role ? roleLabel(person.role) : "No role"}
+            </p>
+            <p className="text-sm text-slate-500 mt-1 capitalize">
+              Status: {person.membership_status || "Unknown"}
+            </p>
+            {person.title && (
+              <p className="text-sm text-slate-500 mt-1">Title: {person.title}</p>
+            )}
+          </div>
           <div>
             <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-3">
               Care Arrangement

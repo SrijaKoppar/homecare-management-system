@@ -20,6 +20,7 @@ export interface PersonPayload {
   title?: string;
   location_id?: string;
   password?: string;
+  status?: 'active' | 'invited' | 'inactive';
 }
 
 export interface Person {
