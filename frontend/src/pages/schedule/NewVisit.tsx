@@ -22,6 +22,7 @@ export default function NewVisit() {
     endDate: "",
     endTime: "",
     address: "",
+    recurrence: "",
   });
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function NewVisit() {
             endDate: end.toISOString().slice(0, 10),
             endTime: end.toISOString().slice(11, 16),
             address: visit.address_street || "",
+            recurrence: visit.recurrence_rule || "",
           });
         }
       } catch (err: any) {
@@ -58,7 +60,7 @@ export default function NewVisit() {
     fetchPersons();
   }, [id]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -88,6 +90,7 @@ export default function NewVisit() {
         scheduled_start: startDateTime,
         scheduled_end: endDateTime,
         address_street: formData.address,
+        recurrence_rule: formData.recurrence.trim() || undefined,
       };
       if (id) {
         await updateVisit(id, payload);
@@ -284,8 +287,28 @@ export default function NewVisit() {
               </div>
             </div>
 
-            {/* Repeats - omitted for brevity or could be added later */}
-            
+            {/* Repeats - stored as free text only. This does not generate
+                additional visit instances; recurring visits must still be
+                scheduled individually for MVP-1. */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Repeats <span className="font-normal text-slate-400">(note only, doesn't auto-schedule)</span>
+              </label>
+              <input
+                type="text"
+                name="recurrence"
+                placeholder="e.g. Every Tuesday and Thursday (optional)"
+                value={formData.recurrence}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 focus:outline-none focus:border-orange-500 focus:bg-white transition-smooth"
+              />
+              <p className="text-xs text-slate-500 mt-1.5">
+                This is stored as a plain note for staff to read. It will not
+                create additional visits automatically - schedule each
+                occurrence separately.
+              </p>
+            </div>
+
             {/* Buttons */}
             <div className="flex justify-end gap-3 pt-6 border-t border-slate-200">
               <button

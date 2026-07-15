@@ -98,8 +98,13 @@ def create_person(
 
     For now this creates a User row with status `invited` and no password;
     a real invite flow can later attach tokens and email.
+
+    The organization is always the caller's authenticated organization.
+    `payload.organization_id`, if present, is ignored - trusting a
+    client-supplied organization would let a member of one organization
+    create memberships in another.
     """
-    org_id = payload.organization_id or UUID(organization_id)
+    org_id = UUID(organization_id)
     existing = db.query(User).filter(User.email.ilike(payload.email)).first()
     if existing and db.query(Membership).filter(
         Membership.user_id == existing.id,
@@ -158,18 +163,20 @@ def get_person(
     db: Session = Depends(get_db_session),
     org_id: str = Depends(get_current_organization_id),
 ) -> PersonResponse:
-    """Get a person by ID."""
+    """Get a person by ID, scoped to the caller's organization."""
     user = db.get(User, person_id)
-    if not user:
+    membership = (
+        db.query(Membership)
+        .filter(Membership.user_id == person_id, Membership.organization_id == UUID(org_id))
+        .first()
+        if user
+        else None
+    )
+    if not user or not membership:
+        # Same 404 whether the person doesn't exist at all or simply isn't
+        # a member of the caller's organization, so this endpoint doesn't
+        # leak whether a given ID belongs to another organization.
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
-    
-    membership = None
-    if org_id:
-        membership = (
-            db.query(Membership)
-            .filter(Membership.user_id == person_id, Membership.organization_id == org_id)
-            .first()
-        )
     return _person_response(user, membership)
 
 
@@ -180,9 +187,19 @@ def update_person(
     db: Session = Depends(get_db_session),
     organization_id: str = Depends(get_current_organization_id),
 ) -> PersonResponse:
-    """Partially update a person."""
+    """Partially update a person, scoped to the caller's organization."""
     user = db.get(User, person_id)
-    if not user:
+    membership = (
+        db.query(Membership)
+        .filter(
+            Membership.user_id == person_id,
+            Membership.organization_id == UUID(organization_id),
+        )
+        .first()
+        if user
+        else None
+    )
+    if not user or not membership:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
 
     if payload.first_name is not None:
@@ -194,30 +211,20 @@ def update_person(
     if payload.phone is not None:
         user.phone = payload.phone
 
-    membership = (
-        db.query(Membership)
-        .filter(
-            Membership.user_id == person_id,
-            Membership.organization_id == UUID(organization_id),
-        )
-        .first()
-    )
-    if membership:
-        if payload.role is not None:
-            membership.role = payload.role.value
-        if payload.title is not None:
-            membership.title = payload.title
-        if payload.location_id is not None:
-            membership.location_id = payload.location_id
-        if payload.membership_status is not None:
-            membership.status = payload.membership_status.value
-        db.add(membership)
+    if payload.role is not None:
+        membership.role = payload.role.value
+    if payload.title is not None:
+        membership.title = payload.title
+    if payload.location_id is not None:
+        membership.location_id = payload.location_id
+    if payload.membership_status is not None:
+        membership.status = payload.membership_status.value
+    db.add(membership)
 
     db.add(user)
     db.commit()
     db.refresh(user)
-    if membership:
-        db.refresh(membership)
+    db.refresh(membership)
     return _person_response(user, membership)
 
 
@@ -227,20 +234,20 @@ def delete_person(
     db: Session = Depends(get_db_session),
     org_id: str = Depends(get_current_organization_id),
 ) -> None:
-    """Soft delete a person by marking membership inactive or user archived."""
+    """Soft delete a person, scoped to the caller's organization."""
     user = db.get(User, person_id)
-    if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
-
     membership = (
         db.query(Membership)
         .filter(Membership.user_id == person_id, Membership.organization_id == UUID(org_id))
         .first()
+        if user
+        else None
     )
+    if not user or not membership:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Person not found")
 
-    if membership:
-        membership.status = "inactive"
-        db.add(membership)
+    membership.status = "inactive"
+    db.add(membership)
 
     # Check if there are any other active memberships for this user
     other_memberships_count = (

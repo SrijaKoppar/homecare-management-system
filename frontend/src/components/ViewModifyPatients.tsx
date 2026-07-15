@@ -3,6 +3,7 @@ import { Search, Plus, Trash2, Pencil } from 'lucide-react';
 import { Button } from './ui/button';
 import { deletePerson, listPersons, type Person } from '../lib/personsApi';
 import { useNavigate } from 'react-router-dom';
+import { notifyError } from "../lib/notify";
 
 type Patient = Person & { assignedCaregiver?: string | null };
 
@@ -43,7 +44,7 @@ export function ViewModifyPatients() {
       await deletePerson(id);
       loadPatients();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Delete failed');
+      notifyError(err instanceof Error ? err.message : 'Delete failed');
     }
   };
 

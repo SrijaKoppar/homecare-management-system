@@ -6,6 +6,7 @@ import { listCarePlans, createCarePlan, updateCarePlan, type CarePlan } from "..
 import { listTasks, createTask, type Task } from "../../lib/tasksApi";
 import { Button } from "../../components/ui/button";
 import { format } from "date-fns";
+import { notifyError } from "../../lib/notify";
 
 export default function CarePlanDetail() {
   const navigate = useNavigate();
@@ -98,7 +99,7 @@ export default function CarePlanDetail() {
     e.preventDefault();
     if (!selectedRecipient) return;
     if (!formName.trim()) {
-      alert("Plan name is required");
+      notifyError("Plan name is required");
       return;
     }
     setSubmitting(true);
@@ -118,7 +119,7 @@ export default function CarePlanDetail() {
       const plans = await listCarePlans(selectedRecipient.id);
       setCarePlans(plans);
     } catch (err: any) {
-      alert("Failed to create plan: " + err.message);
+      notifyError("Failed to create plan: " + err.message);
     } finally {
       setSubmitting(false);
     }
@@ -140,7 +141,7 @@ export default function CarePlanDetail() {
       setTasks(prev => [...prev, task]);
       setNewTaskTitle("");
     } catch (err: any) {
-      alert("Failed to add task: " + err.message);
+      notifyError("Failed to add task: " + err.message);
     }
   };
 
@@ -164,7 +165,7 @@ export default function CarePlanDetail() {
       const plans = await listCarePlans(selectedRecipient.id);
       setCarePlans(plans);
     } catch (err: unknown) {
-      alert("Failed to update plan: " + (err instanceof Error ? err.message : "Unknown error"));
+      notifyError("Failed to update plan: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setSubmitting(false);
     }

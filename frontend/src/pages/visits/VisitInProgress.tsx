@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { ArrowLeft, CheckCircle2, Circle, MapPin, Clock, MessageSquare, MoreVertical, XCircle, MinusCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "../../components/ui/button";
+import { TaskNoteModal } from "../../components/TaskNoteModal";
 import { getVisit, startVisit, endVisit, Visit } from "../../lib/visitsApi";
 import { getPerson, Person } from "../../lib/personsApi";
 import { listTasks, updateTask, Task } from "../../lib/tasksApi";
 import { createVisitNote } from "../../lib/notesApi";
+import { notifyError, notifySuccess } from "../../lib/notify";
 import { format } from "date-fns";
 
 export default function VisitInProgress() {
@@ -26,6 +28,8 @@ export default function VisitInProgress() {
   });
 
   const [showEndDialog, setShowEndDialog] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ task: Task; status: Task["status"] } | null>(null);
+  const [noteSaving, setNoteSaving] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,14 +53,33 @@ export default function VisitInProgress() {
     fetchData();
   }, [id]);
 
-  const updateTaskStatus = async (task: Task, status: Task["status"]) => {
-    const note = status === "pending" ? task.notes : window.prompt("Optional task note", task.notes || "") ?? task.notes;
+  const applyTaskStatus = async (task: Task, status: Task["status"], note: string | null) => {
     try {
       setTasks(tasks.map(t => t.id === task.id ? { ...t, status, notes: note || null } : t));
       await updateTask(task.id, { status, notes: note || null });
     } catch (err: any) {
-      alert("Failed to update task status: " + err.message);
+      notifyError("Failed to update task status: " + err.message);
       setTasks(tasks.map(t => t.id === task.id ? { ...t, status: task.status } : t));
+    }
+  };
+
+  const updateTaskStatus = (task: Task, status: Task["status"]) => {
+    if (status === "pending") {
+      applyTaskStatus(task, status, task.notes ?? null);
+      return;
+    }
+    // Completed/skipped/declined all get an optional note via the modal.
+    setPendingStatusChange({ task, status });
+  };
+
+  const handleSaveTaskNote = async (note: string) => {
+    if (!pendingStatusChange) return;
+    setNoteSaving(true);
+    try {
+      await applyTaskStatus(pendingStatusChange.task, pendingStatusChange.status, note || null);
+      setPendingStatusChange(null);
+    } finally {
+      setNoteSaving(false);
     }
   };
 
@@ -88,7 +111,7 @@ export default function VisitInProgress() {
 
       const updated = await endVisit(id);
       setVisit(updated);
-      alert("Visit ended successfully!");
+      notifySuccess("Visit ended successfully!");
       navigate("/schedule");
     } catch (err: any) {
       setError(err.message || "Failed to end visit");
@@ -350,6 +373,15 @@ export default function VisitInProgress() {
         )}
       </>
       )}
+
+      <TaskNoteModal
+        open={pendingStatusChange !== null}
+        taskTitle={pendingStatusChange?.task.title ?? ""}
+        initialNote={pendingStatusChange?.task.notes ?? ""}
+        saving={noteSaving}
+        onCancel={() => setPendingStatusChange(null)}
+        onSave={handleSaveTaskNote}
+      />
     </div>
   );
 }

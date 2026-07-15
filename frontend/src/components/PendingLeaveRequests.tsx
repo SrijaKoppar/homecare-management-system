@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Clock, Calendar, Check, X, AlertCircle } from 'lucide-react';
 import { listLeaveRequests, updateLeaveRequestStatus, type LeaveRequest } from '../lib/leaveRequestsApi';
 import { format } from 'date-fns';
+import { notifyError } from "../lib/notify";
 
 interface PendingLeaveRequestsProps {
   onStatusChanged?: () => void;
@@ -45,7 +46,7 @@ export function PendingLeaveRequests({ onStatusChanged }: PendingLeaveRequestsPr
       }
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Action failed');
+      notifyError(err instanceof Error ? err.message : 'Action failed');
     } finally {
       setActioningId(null);
     }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { createPerson, toPersonPayload } from '../lib/personsApi';
+import { notifySuccess, notifyError } from "../lib/notify";
 
 interface PatientForm {
   firstName: string;
@@ -96,7 +97,7 @@ export function NewPatient() {
   const handleSubmit = async () => {
     const err = validate();
     if (err) {
-      alert(err);
+      notifyError(err);
       return;
     }
 
@@ -115,10 +116,10 @@ export function NewPatient() {
         }
       );
 
-      alert('Patient registered successfully');
+      notifySuccess('Patient registered successfully');
       setFormData(initialFormState);
     } catch (err: unknown) {
-      alert('Error: ' + (err instanceof Error ? err.message : 'Registration failed'));
+      notifyError('Error: ' + (err instanceof Error ? err.message : 'Registration failed'));
     } finally {
       setLoading(false);
     }

@@ -119,3 +119,13 @@ def seed_org_and_admin(db_session: Session) -> dict:
 
 def auth_headers(token: str) -> dict[str, str]:
     return {"Authorization": f"Bearer {token}"}
+
+
+def login(client, seed: dict) -> dict:
+    """Log in with email/password and return the login response JSON."""
+    login_res = client.post(
+        "/api/v1/auth/login",
+        json={"email": seed["email"], "password": seed["password"]},
+    )
+    assert login_res.status_code == 200, login_res.text
+    return login_res.json()

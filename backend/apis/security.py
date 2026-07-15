@@ -44,3 +44,9 @@ def verify_password(password: str, password_hash: str | None) -> bool:
         return hmac.compare_digest(digest.hex(), hash_hex)
     except (ValueError, TypeError):
         return False
+
+
+# Generic secret hashing helpers (clearer naming for non-password secrets,
+# e.g. organization access codes). Same PBKDF2 scheme as passwords.
+hash_secret = hash_password
+verify_secret = verify_password

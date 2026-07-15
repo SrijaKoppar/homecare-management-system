@@ -2,10 +2,12 @@ import { ArrowLeft, CheckCircle2, Circle, MessageSquare, Clock, ShieldAlert, Min
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
+import { TaskNoteModal } from "../../components/TaskNoteModal";
 import { listAssignments24x7, type Assignment24x7 } from "../../lib/assignments24x7Api";
 import { getPerson, listPersons, type Person } from "../../lib/personsApi";
 import { listTasks, updateTask, type Task } from "../../lib/tasksApi";
 import { createCareNote, listCareNotes, type CareNote } from "../../lib/notesApi";
+import { notifyError, notifySuccess } from "../../lib/notify";
 import { format } from "date-fns";
 
 export default function Assignment24x7Page() {
@@ -25,6 +27,8 @@ export default function Assignment24x7Page() {
   const [loading, setLoading] = useState(true);
   const [dailyNote, setDailyNote] = useState("");
   const [savingNote, setSavingNote] = useState(false);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ task: Task; status: Task["status"] } | null>(null);
+  const [noteSaving, setNoteSaving] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -67,21 +71,40 @@ export default function Assignment24x7Page() {
     loadData();
   }, [currentUserId, currentUserRole]);
 
-  const updateTaskStatus = async (task: Task, status: Task["status"]) => {
+  const applyTaskStatus = async (task: Task, status: Task["status"], note: string | null) => {
     if (!activeAssignment) return;
-    const note = status === "pending" ? task.notes : window.prompt("Optional task note", task.notes || "") ?? task.notes;
     try {
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status, notes: note || null } : t));
       await updateTask(task.id, { status, notes: note || null });
     } catch (err: any) {
-      alert("Failed to update task: " + err.message);
+      notifyError("Failed to update task: " + err.message);
       setTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: task.status } : t));
+    }
+  };
+
+  const updateTaskStatus = (task: Task, status: Task["status"]) => {
+    if (!activeAssignment) return;
+    if (status === "pending") {
+      applyTaskStatus(task, status, task.notes ?? null);
+      return;
+    }
+    setPendingStatusChange({ task, status });
+  };
+
+  const handleSaveTaskNote = async (note: string) => {
+    if (!pendingStatusChange) return;
+    setNoteSaving(true);
+    try {
+      await applyTaskStatus(pendingStatusChange.task, pendingStatusChange.status, note || null);
+      setPendingStatusChange(null);
+    } finally {
+      setNoteSaving(false);
     }
   };
 
   const handleSaveNote = async () => {
     if (!activeAssignment || !dailyNote.trim()) {
-      alert("Daily note summary cannot be empty");
+      notifyError("Daily note summary cannot be empty");
       return;
     }
     setSavingNote(true);
@@ -95,11 +118,11 @@ export default function Assignment24x7Page() {
         summary: dailyNote.trim(),
         mood: "Good",
       });
-      alert("Daily care note saved successfully!");
+      notifySuccess("Daily care note saved successfully!");
       setDailyNote("");
       setNotes(await listCareNotes({ assignment_24x7_id: activeAssignment.id }));
     } catch (err: any) {
-      alert("Failed to save note: " + err.message);
+      notifyError("Failed to save note: " + err.message);
     } finally {
       setSavingNote(false);
     }
@@ -332,6 +355,15 @@ export default function Assignment24x7Page() {
           </div>
         )}
       </div>
+
+      <TaskNoteModal
+        open={pendingStatusChange !== null}
+        taskTitle={pendingStatusChange?.task.title ?? ""}
+        initialNote={pendingStatusChange?.task.notes ?? ""}
+        saving={noteSaving}
+        onCancel={() => setPendingStatusChange(null)}
+        onSave={handleSaveTaskNote}
+      />
     </div>
   );
 }

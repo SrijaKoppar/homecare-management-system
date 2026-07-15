@@ -13,7 +13,9 @@ import { Button } from "../../components/ui/button";
 import { getPerson, updatePerson, listPersons, roleLabel, type Person, type PersonRole } from "../../lib/personsApi";
 import { listCareRelationships, createCareRelationship, updateCareRelationship, listCareArrangements, type CareRelationship, type CareArrangement } from "../../lib/careApi";
 import { listTasks, type Task } from "../../lib/tasksApi";
+import { listVisits, type Visit } from "../../lib/visitsApi";
 import { format } from "date-fns";
+import { notifyError } from "../../lib/notify";
 
 function SideCard({
   icon,
@@ -50,6 +52,7 @@ export default function PersonProfile() {
   const [relationships, setRelationships] = useState<(CareRelationship & { related_person?: Person })[]>([]);
   const [arrangements, setArrangements] = useState<CareArrangement[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [nextVisit, setNextVisit] = useState<Visit | null>(null);
   const [allPersons, setAllPersons] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
   const [editOpen, setEditOpen] = useState(false);
@@ -99,6 +102,22 @@ export default function PersonProfile() {
         setAllPersons(allPersons);
         setArrangements(arrsData);
         setTasks(tasksData);
+
+        if (personData.role === "care_recipient") {
+          try {
+            const visits = await listVisits(id);
+            const now = new Date();
+            const upcoming = visits
+              .filter(v => v.status === "scheduled" && new Date(v.scheduled_start) >= now)
+              .sort((a, b) => new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime());
+            setNextVisit(upcoming[0] ?? null);
+          } catch (err) {
+            console.error("Failed to load upcoming visits", err);
+            setNextVisit(null);
+          }
+        } else {
+          setNextVisit(null);
+        }
       } catch (err) {
         console.error(err);
         setPerson(null);
@@ -111,7 +130,7 @@ export default function PersonProfile() {
 
   const handleSaveProfile = async () => {
     if (!id || !editForm.first_name.trim() || !editForm.last_name.trim()) {
-      alert("First and last name are required");
+      notifyError("First and last name are required");
       return;
     }
     setSaving(true);
@@ -126,7 +145,7 @@ export default function PersonProfile() {
       setPerson(updated);
       setEditOpen(false);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to update profile");
+      notifyError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {
       setSaving(false);
     }
@@ -134,7 +153,7 @@ export default function PersonProfile() {
 
   const handleAddMember = async () => {
     if (!id || !addMemberForm.related_user_id) {
-      alert("Please select a person to add");
+      notifyError("Please select a person to add");
       return;
     }
     setSaving(true);
@@ -162,7 +181,7 @@ export default function PersonProfile() {
       setAddMemberOpen(false);
       setAddMemberForm({ related_user_id: "", role: "family_viewer", is_24x7_caregiver: false });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to add member");
+      notifyError(err instanceof Error ? err.message : "Failed to add member");
     } finally {
       setSaving(false);
     }
@@ -175,7 +194,7 @@ export default function PersonProfile() {
       await updateCareRelationship(relId, { status: "ended" });
       setRelationships((prev) => prev.filter((r) => r.id !== relId));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to remove member");
+      notifyError(err instanceof Error ? err.message : "Failed to remove member");
     } finally {
       setSaving(false);
     }
@@ -333,12 +352,32 @@ export default function PersonProfile() {
           body={`${tasks.length} active tasks`}
           sub="Stored as individual tasks"
         />
-        <SideCard
-          icon={<Calendar className="h-5 w-5 text-slate-400" />}
-          title="Next Visit"
-          body="Pending Integration"
-          sub=""
-        />
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <SideCardHeader icon={<Calendar className="h-5 w-5 text-slate-400" />} title="Next Visit" />
+          {person?.role !== "care_recipient" ? (
+            <>
+              <p className="text-lg font-semibold text-slate-900 mb-2">Not applicable</p>
+              <p className="text-sm text-slate-500">Only care recipients have scheduled visits.</p>
+            </>
+          ) : nextVisit ? (
+            <>
+              <p className="text-lg font-semibold text-slate-900 mb-2">
+                {format(new Date(nextVisit.scheduled_start), "MMM d, yyyy · h:mm a")}
+              </p>
+              <p className="text-sm text-slate-500 mb-3">
+                {nextVisit.assigned_caregiver_id ? "Caregiver assigned" : "Unassigned"}
+              </p>
+              <Button size="sm" variant="outline" onClick={() => navigate(`/visit/${nextVisit.id}`)}>
+                View visit
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="text-lg font-semibold text-slate-900 mb-2">No upcoming visit</p>
+              <p className="text-sm text-slate-500">Nothing scheduled yet for this care recipient.</p>
+            </>
+          )}
+        </div>
       </div>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

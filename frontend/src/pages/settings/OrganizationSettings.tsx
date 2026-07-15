@@ -11,6 +11,7 @@ import {
   deleteLocation,
   type Location,
 } from "../../lib/organizationsApi";
+import { notifySuccess, notifyError } from "../../lib/notify";
 
 export default function OrganizationSettings() {
   const navigate = useNavigate();
@@ -95,7 +96,7 @@ export default function OrganizationSettings() {
         address_postal_code: formData.address_postal_code.trim() || undefined,
         timezone: formData.timezone,
       });
-      alert("Organization settings updated!");
+      notifySuccess("Organization settings updated!");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
@@ -119,7 +120,7 @@ export default function OrganizationSettings() {
 
   const handleSaveLocation = async () => {
     if (!orgId || !locationForm.name.trim()) {
-      alert("Location name is required");
+      notifyError("Location name is required");
       return;
     }
     setSaving(true);
@@ -150,7 +151,7 @@ export default function OrganizationSettings() {
       const locs = await listLocations();
       setLocations(locs);
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to save location");
+      notifyError(err instanceof Error ? err.message : "Failed to save location");
     } finally {
       setSaving(false);
     }
@@ -176,7 +177,7 @@ export default function OrganizationSettings() {
       await deleteLocation(id);
       setLocations((prev) => prev.filter((l) => l.id !== id));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to delete location");
+      notifyError(err instanceof Error ? err.message : "Failed to delete location");
     }
   };
 

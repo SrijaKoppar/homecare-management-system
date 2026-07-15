@@ -5,6 +5,7 @@ import { Calendar, Clock, MapPin, Pencil, X } from 'lucide-react';
 import { apiHeaders, apiUrl } from '../config/api';
 import { listPersons, type Person } from '../lib/personsApi';
 import { useNavigate } from 'react-router-dom';
+import { notifyError } from "../lib/notify";
 
 interface Schedule {
   id: string;
@@ -112,7 +113,7 @@ export function UpcomingSchedules() {
       if (!res.ok) throw new Error('Cancel failed');
       fetchSchedules();
     } catch {
-      alert('Cancel failed');
+      notifyError('Cancel failed');
     }
   };
 

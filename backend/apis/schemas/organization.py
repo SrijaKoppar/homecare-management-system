@@ -3,6 +3,7 @@ Organization request and response schemas.
 """
 
 from typing import Optional
+from uuid import UUID
 from pydantic import BaseModel, Field
 
 
@@ -21,7 +22,7 @@ class OrganizationUpdate(BaseModel):
 class OrganizationResponse(BaseModel):
     """Organization in API responses."""
 
-    id: str
+    id: str | UUID
     name: str
     type: str  # household | agency
     slug: Optional[str] = None

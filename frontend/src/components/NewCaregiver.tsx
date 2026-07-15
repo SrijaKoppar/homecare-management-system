@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { createPerson, toPersonPayload } from '../lib/personsApi';
+import { notifySuccess, notifyError } from "../lib/notify";
 
 type CaregiverForm = {
   firstName: string;
@@ -78,7 +79,7 @@ export function NewCaregiver() {
   const handleSubmit = async () => {
     const err = validate();
     if (err) {
-      alert(err);
+      notifyError(err);
       return;
     }
 
@@ -97,10 +98,10 @@ export function NewCaregiver() {
         }
       );
 
-      alert('Caregiver registered successfully');
+      notifySuccess('Caregiver registered successfully');
       setFormData(initialFormState);
     } catch (err: unknown) {
-      alert('Error: ' + (err instanceof Error ? err.message : 'Registration failed'));
+      notifyError('Error: ' + (err instanceof Error ? err.message : 'Registration failed'));
     } finally {
       setLoading(false);
     }

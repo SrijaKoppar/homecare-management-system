@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Mail, CheckCircle, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPerson, type PersonRole } from "../../lib/personsApi";
+import { notifyError } from "../../lib/notify";
 
 const roleMap: Record<string, PersonRole> = {
   "Family editor": "family_editor",
@@ -22,7 +23,7 @@ export default function InvitePerson() {
 
   const handleSendInvite = async () => {
     if (!email.trim() || !firstName.trim() || !lastName.trim() || !role) {
-      alert("Please fill in all required fields");
+      notifyError("Please fill in all required fields");
       return;
     }
 
@@ -38,7 +39,7 @@ export default function InvitePerson() {
       setSent(true);
     } catch (err) {
       console.error(err);
-      alert(err instanceof Error ? err.message : "Error sending invite");
+      notifyError(err instanceof Error ? err.message : "Error sending invite");
     } finally {
       setLoading(false);
     }

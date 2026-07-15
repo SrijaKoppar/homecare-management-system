@@ -3,6 +3,7 @@ import { ArrowLeft, Send, Paperclip } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { getConversation, listMessages, sendMessage, type Conversation, type Message } from "../../lib/messagesApi";
 import { listPersons, type Person } from "../../lib/personsApi";
+import { notifyError } from "../../lib/notify";
 
 export default function MessageThread() {
   const navigate = useNavigate();
@@ -48,7 +49,7 @@ export default function MessageThread() {
       setMessages((prev) => [...prev, sent]);
       setMessageText("");
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to send message");
+      notifyError(err instanceof Error ? err.message : "Failed to send message");
     } finally {
       setSending(false);
     }
@@ -128,7 +129,12 @@ export default function MessageThread() {
       {/* Message Input */}
       <div className="border-t border-slate-200 bg-white p-6">
         <div className="flex gap-3">
-          <button className="p-2.5 hover:bg-slate-100 rounded-lg transition-smooth text-slate-600" title="Attachments are deferred for MVP-1">
+          <button
+            type="button"
+            disabled
+            className="p-2.5 rounded-lg text-slate-300 cursor-not-allowed"
+            title="Attachments are not available in MVP"
+          >
             <Paperclip className="h-5 w-5" />
           </button>
           

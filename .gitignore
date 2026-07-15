@@ -15,15 +15,21 @@ backend/venv/
 
 # OS / editor
 .DS_Store
+**/.DS_Store
 Thumbs.db
 .idea/
 .vscode/
+
+# Test artifacts
+.pytest_cache/
+**/.pytest_cache/
 
 # Frontend build artifacts
 frontend/dist/
 frontend/dist-ssr/
 frontend/node_modules/
 frontend/src.zip
+*.tsbuildinfo
 *.local
 
 # Logs

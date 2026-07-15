@@ -3,6 +3,7 @@ import { ArrowLeft, Mail, Phone, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/button";
 import { getPerson, updatePerson, roleLabel } from "../../lib/personsApi";
+import { notifySuccess, notifyError } from "../../lib/notify";
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ export default function Profile() {
   const handleSave = async () => {
     if (!userId) return;
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      alert("First and last name are required");
+      notifyError("First and last name are required");
       return;
     }
     setSaving(true);
@@ -69,7 +70,7 @@ export default function Profile() {
       if (formData.avatarUrl.trim()) {
         localStorage.setItem("avatar_url", formData.avatarUrl.trim());
       }
-      alert("Profile updated successfully!");
+      notifySuccess("Profile updated successfully!");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update profile");
     } finally {

@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "../../components/ui/dialog";
 import { Button } from "../../components/ui/button";
+import { notifyError } from "../../lib/notify";
 
 interface ExtendedThread extends Conversation {
   lastMessage?: string;
@@ -104,7 +105,7 @@ export default function Messages() {
 
   const handleCreateThread = async () => {
     if (selectedParticipants.length === 0) {
-      alert("Please select at least one participant");
+      notifyError("Please select at least one participant");
       return;
     }
     setSubmitting(true);
@@ -122,7 +123,7 @@ export default function Messages() {
       setNewThreadOpen(false);
       navigate(`/messages/${newConv.id}`);
     } catch (err: any) {
-      alert("Failed to start thread: " + err.message);
+      notifyError("Failed to start thread: " + err.message);
     } finally {
       setSubmitting(false);
     }

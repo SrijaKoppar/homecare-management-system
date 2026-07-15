@@ -54,7 +54,8 @@ def seed():
                 id=org_id,
                 name="CareSys Home Care",
                 type="agency",
-                status="active"
+                status="active",
+                slug="caresys-home-care",
             )
             db.add(org)
             db.commit()
